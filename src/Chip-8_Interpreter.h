@@ -3,6 +3,22 @@
 
 #pragma once
 
-#include <iostream>
+namespace Chip8
+{
+	class Interpreter
+	{
+	public:
+		explicit Interpreter();
+		~Interpreter();
+		void Run();
 
-// TODO: Reference additional headers your program requires here.
+		Interpreter(const Interpreter& other) = delete;
+		Interpreter(Interpreter&& other) = delete;
+		Interpreter& operator=(const Interpreter& other) = delete;
+		Interpreter& operator=(Interpreter&& other) = delete;
+
+		const int m_WidthBase = 640;
+		const int m_HeightBase = 480;
+	};
+
+}
