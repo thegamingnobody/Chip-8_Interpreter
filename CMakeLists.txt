@@ -1,12 +1,31 @@
 ﻿# CMakeList.txt : CMake project for Chip-8_Interpreter, include source and define
 # project specific logic here.
 #
+cmake_minimum_required(VERSION 3.16)
+project(Chip-8_Interpreter)
+
+set(CMAKE_CXX_STANDARD 20)
+
+#Fetch libraries
+include(FetchContent)
+
+FetchContent_Declare(
+    SDL2
+    GIT_REPOSITORY https://github.com/libsdl-org/SDL.git
+    GIT_TAG release-3.2.8
+    )
+FetchContent_MakeAvailable(SDL2)
+
+set(PROJECT_SRC
+    "src/Chip-8_Interpreter.cpp"
+    "src/Chip-8_Interpreter.h"    
+	)
 
 # Add source to this project's executable.
-add_executable (Chip-8_Interpreter "Chip-8_Interpreter.cpp" "Chip-8_Interpreter.h")
+add_executable (${PROJECT_NAME} ${PROJECT_SRC})
 
-if (CMAKE_VERSION VERSION_GREATER 3.12)
-  set_property(TARGET Chip-8_Interpreter PROPERTY CXX_STANDARD 20)
-endif()
+# Link SDL to project
+target_link_libraries(${PROJECT_NAME} PRIVATE SDL3::SDL3)
 
-# TODO: Add tests and install targets if needed.
+# Include src in project
+target_include_directories(${PROJECT_NAME} PUBLIC ${CMAKE_SOURCE_DIR}/src)
