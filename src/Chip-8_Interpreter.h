@@ -3,6 +3,9 @@
 
 #pragma once
 
+#include "TypeDefinitions.h"
+#include <vector>
+
 namespace Chip8
 {
 	class Interpreter
@@ -16,9 +19,20 @@ namespace Chip8
 		Interpreter(Interpreter&& other) = delete;
 		Interpreter& operator=(const Interpreter& other) = delete;
 		Interpreter& operator=(Interpreter&& other) = delete;
+	
+	private:
+		//Index register
+		unsigned short m_I;
 
-		const int m_WidthBase = 640;
-		const int m_HeightBase = 480;
+		//Program counter
+		unsigned short m_PC;
+
+		//Main memory
+		std::vector<byte> m_Memory;
+
+		//Registers
+		std::vector<byte> m_V;
+
 	};
 
 }

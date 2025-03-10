@@ -25,7 +25,9 @@ set(PROJECT_SRC
     "src/Renderer.h" 
     "src/InputManager.cpp"
     "src/InputManager.h"
-    )
+    "src/TypeDefinitions.h"
+    "src/ScreenManager.cpp"
+    "src/ScreenManager.h")
 
 # Add source to this project's executable.
 add_executable(${PROJECT_NAME} ${PROJECT_SRC})

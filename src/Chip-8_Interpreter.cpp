@@ -3,10 +3,24 @@
 #include "InputManager.h"
 #include <chrono>
 #include <thread>
+#include "ScreenManager.h"
 
 Chip8::Interpreter::Interpreter()
+	: m_I()
+	, m_PC()
 {
-	Renderer::GetInstance().Init(m_WidthBase, m_HeightBase);
+	//Resize memory to 4KB and initialize registers
+	m_Memory.resize(4096);
+	m_V.resize(16);
+
+	//Initialize Singletons
+	//Todo: Read in from config file?
+	int windowWidth{ 64 };
+	int windowHeight{ 32 };
+	float windowScale{ 8.0f };
+
+	ScreenManager::GetInstance().Init(windowWidth, windowHeight, windowScale);
+	Renderer::GetInstance().Init(windowWidth, windowHeight, windowScale);
 	InputManager::GetInstance().Init();
 }
 
