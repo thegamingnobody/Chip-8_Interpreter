@@ -3,8 +3,9 @@
 #include "InputManager.h"
 #include <chrono>
 #include <thread>
-#include "ScreenManager.h"
 #include <iostream>
+#include <fstream>
+#include <filesystem>
 #include <cassert>
 
 Chip8::Interpreter::Interpreter()
@@ -48,16 +49,37 @@ Chip8::Interpreter::~Interpreter()
 	SDL_Quit();
 }
 
-void Chip8::Interpreter::LoadGame(const std::string& /*gamePath*/)
+void Chip8::Interpreter::LoadGame(const std::string& gameName)
 {
+	std::string relativePath{ "../../../roms/" + gameName };
 	//Todo: Load game into memory
+	std::ifstream input(relativePath, std::ios::binary | std::ios::ate);
+	if (!input.is_open())
+	{
+		std::cerr << "Failed to open file: " << relativePath << "\n";
+		return;
+	}
+
+	//Get file size
+	std::streamsize fileSize = input.tellg();
+	input.seekg(0, std::ios::beg);
+
+	assert(fileSize < m_Memory.size());
+
+	//Todo: improve with a std algorithm
+	for (int i = 0; i < fileSize; ++i)
+	{
+		m_Memory[i + m_PC] = input.get();
+	}
+
+	std::cout << "Game loaded successfully\n";
 }
 
 void Chip8::Interpreter::EmulateCycle()
 {
-	//Todo: delete this temp
-	m_Memory[m_PC] = 0xA2;
-	m_Memory[m_PC + 1] = 0xF0;
+	////Todo: delete this temp
+	//m_Memory[m_PC] = 0xA2;
+	//m_Memory[m_PC + 1] = 0xF0;
 
 	//Todo: Fetch opcode
 	m_I = m_Memory[m_PC] << 8 | m_Memory[m_PC + 1];
@@ -90,7 +112,9 @@ void Chip8::Interpreter::EmulateCycle()
 		std::cout << "instructionType: unknown\n";
 		break;
 	}
+
 	//Todo: Execute opcode
+	m_PC += 2;
 
 	//Todo: Update timers
 }

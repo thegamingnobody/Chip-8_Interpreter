@@ -6,6 +6,9 @@ int main()
 {
 	Chip8::Interpreter interpreter{};
 
+	std::string gameName{ "IBM_Logo.ch8" };
+	interpreter.LoadGame(gameName);
+
 	bool continueRunning{ true };
 	while (continueRunning)
 	{

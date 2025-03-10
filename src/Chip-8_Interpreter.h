@@ -21,7 +21,7 @@ namespace Chip8
 		Interpreter& operator=(const Interpreter& other) = delete;
 		Interpreter& operator=(Interpreter&& other) = delete;
 		
-		void LoadGame(const std::string& gamePath);
+		void LoadGame(const std::string& gameName);
 
 		void EmulateCycle();
 

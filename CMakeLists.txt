@@ -27,7 +27,8 @@ set(PROJECT_SRC
     "src/InputManager.h"
     "src/TypeDefinitions.h"
     "src/ScreenManager.cpp"
-    "src/ScreenManager.h")
+    "src/ScreenManager.h"
+)
 
 # Add source to this project's executable.
 add_executable(${PROJECT_NAME} ${PROJECT_SRC})
@@ -37,6 +38,8 @@ target_link_libraries(${PROJECT_NAME} PRIVATE SDL3::SDL3)
 
 # Include src in project
 target_include_directories(${PROJECT_NAME} PUBLIC ${CMAKE_SOURCE_DIR}/src)
+target_include_directories(${PROJECT_NAME} PUBLIC ${CMAKE_SOURCE_DIR}/roms)
+
 
 add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy_if_different
