@@ -50,7 +50,7 @@ void Chip8::Renderer::Init(int windowWidth, int windowHeight, float windowScale)
 	{
 		for (int column = 0; column < windowWidth; column++)
 		{
-			m_Screen[row][column] = ((column + row) % 2);
+			SetPixel(column, row, ((column + row) % 2));
 		}
 	}
 }
@@ -90,4 +90,9 @@ void Chip8::Renderer::Destroy()
 		SDL_DestroyWindow(m_Window);
 		m_Window = nullptr;
 	}
+}
+
+void Chip8::Renderer::SetPixel(int x, int y, bool value)
+{
+	m_Screen[y][x] = value;
 }

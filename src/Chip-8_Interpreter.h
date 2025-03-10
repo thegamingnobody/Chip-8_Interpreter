@@ -5,6 +5,7 @@
 
 #include "TypeDefinitions.h"
 #include <vector>
+#include <string>
 
 namespace Chip8
 {
@@ -13,26 +14,47 @@ namespace Chip8
 	public:
 		explicit Interpreter();
 		~Interpreter();
-		void Run();
+		//void Run();
 
 		Interpreter(const Interpreter& other) = delete;
 		Interpreter(Interpreter&& other) = delete;
 		Interpreter& operator=(const Interpreter& other) = delete;
 		Interpreter& operator=(Interpreter&& other) = delete;
-	
+		
+		void LoadGame(const std::string& gamePath);
+
+		void EmulateCycle();
+
+		void UpdateRender();
+
+		bool SetkeyStates();
+
 	private:
-		//Index register
-		unsigned short m_I;
-
-		//Program counter
-		unsigned short m_PC;
-
 		//Main memory
 		std::vector<byte> m_Memory;
 
 		//Registers
 		std::vector<byte> m_V;
+		
+		//Keys
+		//todo: is bool correct type?
+		std::vector<bool> m_Keys;
 
+		//Stack 
+		std::vector<byte> m_Stack;
+
+		//Index register
+		opcode m_I;
+
+		//Program counter
+		opcode m_PC;
+
+		//Timers & Stack Pointer
+		byte m_DelayTimer;
+		byte m_SoundTimer;
+		byte m_SP;
+
+		bool m_DrawFlag;
 	};
 
 }
