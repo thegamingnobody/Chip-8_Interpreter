@@ -44,15 +44,14 @@ void Chip8::Renderer::Init(int windowWidth, int windowHeight, float windowScale)
 		m_Screen[row].resize(windowWidth);
 	}
 	
-
-
-	for (int row = 0; row < windowHeight; row++)
-	{
-		for (int column = 0; column < windowWidth; column++)
-		{
-			SetPixel(column, row, ((column + row) % 2));
-		}
-	}
+	////Initialize screen with a grid pattern
+	//for (int row = 0; row < windowHeight; row++)
+	//{
+	//	for (int column = 0; column < windowWidth; column++)
+	//	{
+	//		SetPixel(column, row, ((column + row) % 2));
+	//	}
+	//}
 }
 
 void Chip8::Renderer::Render() const

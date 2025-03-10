@@ -4,14 +4,16 @@
 #include <chrono>
 #include <thread>
 #include "ScreenManager.h"
+#include <iostream>
+#include <cassert>
 
 Chip8::Interpreter::Interpreter()
 	: m_Memory()
 	, m_V()
 	, m_Keys()
 	, m_Stack()
-	, m_I()
-	, m_PC()
+	, m_I(0)
+	, m_PC(0x0200)
 	, m_DelayTimer()
 	, m_SoundTimer()
 	, m_SP()
@@ -22,13 +24,20 @@ Chip8::Interpreter::Interpreter()
 	m_V.resize(16);
 	m_Keys.resize(16);
 
+	//Todo: Clear display	
+	//Todo: Clear stack
+	//Todo: Clear registers V0-VF
+	//Todo: Clear memory
+	//Todo: Load fontset
+	//Todo: Reset timers
+
 	//Initialize Singletons
 	//Todo: Read in from config file?
 	int windowWidth{ 64 };
 	int windowHeight{ 32 };
 	float windowScale{ 16.0f };
 
-	ScreenManager::GetInstance().Init(windowWidth, windowHeight, windowScale);
+	//ScreenManager::GetInstance().Init(windowWidth, windowHeight, windowScale);
 	Renderer::GetInstance().Init(windowWidth, windowHeight, windowScale);
 	InputManager::GetInstance().Init();
 }
@@ -46,10 +55,41 @@ void Chip8::Interpreter::LoadGame(const std::string& /*gamePath*/)
 
 void Chip8::Interpreter::EmulateCycle()
 {
+	//Todo: delete this temp
+	m_Memory[m_PC] = 0xA2;
+	m_Memory[m_PC + 1] = 0xF0;
+
 	//Todo: Fetch opcode
+	m_I = m_Memory[m_PC] << 8 | m_Memory[m_PC + 1];
 
 	//Todo: Decode opcode
+	//get the value of the first 4 bits of the opcode to determine the instruction type
+	byte instructionType = (m_I & 0xF000) >> 8 >> 4;
 
+	switch (instructionType)
+	{
+	case 0x0:
+		std::cout << "instructionType: 0\n";
+		break;
+	case 0x1:
+		std::cout << "instructionType: 1\n";
+		break;
+	case 0x6:
+		std::cout << "instructionType: 6\n";
+		break;
+	case 0x7:
+		std::cout << "instructionType: 7\n";
+		break;
+	case 0xA:
+		std::cout << "instructionType: A\n";
+		break;
+	case 0xD:
+		std::cout << "instructionType: D\n";
+		break;
+	default:
+		std::cout << "instructionType: unknown\n";
+		break;
+	}
 	//Todo: Execute opcode
 
 	//Todo: Update timers
