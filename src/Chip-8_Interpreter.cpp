@@ -92,56 +92,64 @@ void Chip8::Interpreter::EmulateCycle()
 	byte instructionType = (m_I & 0xF000) >> 8 >> 4;
 
 	//Todo: Execute opcode
+	bool instructionExecuted{ true };
+	
 	switch (instructionType)
 	{
 	case 0x0:
+		//0x0NNN: don't implement
+		//0x00E0: Clears the screen		
 		{
-			//0x0NNN: don't implement
-			//0x00E0: Clears the screen
-			logger.Log("instructionType: 0");
-		
 			byte instructionParam = (m_I & 0x00FF);
 			if (instructionParam == 0xE0)
 			{
-				logger.SetHexMode();
-				logger.Log("[EXEC] instruction executed:", m_I);
-
 				Renderer::GetInstance().ClearScreen();
 				m_PC += 2;
 			}
 			else
 			{
-				logger.SetHexMode();
-				logger.Log("[ERROR] instruction invalid:", m_I);
-				logger.SetDecMode();
+				instructionExecuted = false;
 			}
 			break;
 		}
 	case 0x1:
 		//0x1NNN: Jump to address NNN
-		logger.Log("instructionType: 1");
 		m_PC = m_I & 0x0FFF;
 		break;
 	case 0x6:
 		//0x6XNN: Set register vX to value NN
-		logger.Log("instructionType: 6");
+		{
+			int registerIndex = (m_I & 0x0F00) >> 8;
+			byte value = m_I & 0x00FF;
+			m_V[registerIndex] = value;
+		}
 		break;
 	case 0x7:
 		//0x7XNN: Add value NN to register vX
-		logger.Log("instructionType: 7");
 		break;
 	case 0xA:
 		//0xANNN: Set index register to value NNN
-		logger.Log("instructionType: A");
 		break;
 	case 0xD:
 		//0xDXYN: Draw/Render
-		logger.Log("instructionType: D");
 		break;
 	default:
-		logger.Log("instructionType: Unknown");
+		instructionExecuted = false;
 		break;
 	}
+
+#ifdef MY_DEBUG
+	if (instructionExecuted)
+	{
+		logger.SetHexMode();
+		logger.Log("[EXEC] instruction executed:", m_I);
+	}
+	else
+	{
+		logger.SetHexMode();
+		logger.Log("[ERROR] instruction failed:", m_I);
+	}
+#endif // MY_DEBUG
 
 	//Todo: Update timers
 }

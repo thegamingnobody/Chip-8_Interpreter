@@ -1,5 +1,6 @@
 #include "Logger.h"
 #include <iostream>
+#include <iomanip>
 
 void Chip8::Logger::Init(bool isEnabled)
 {
