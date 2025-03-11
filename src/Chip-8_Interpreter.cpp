@@ -7,6 +7,7 @@
 #include <fstream>
 #include <filesystem>
 #include <cassert>
+#include "Logger.h"
 
 Chip8::Interpreter::Interpreter()
 	: m_Memory()
@@ -41,6 +42,7 @@ Chip8::Interpreter::Interpreter()
 	//ScreenManager::GetInstance().Init(windowWidth, windowHeight, windowScale);
 	Renderer::GetInstance().Init(windowWidth, windowHeight, windowScale);
 	InputManager::GetInstance().Init();
+	Logger::GetInstance().Init(true);
 }
 
 Chip8::Interpreter::~Interpreter()
@@ -51,8 +53,8 @@ Chip8::Interpreter::~Interpreter()
 
 void Chip8::Interpreter::LoadGame(const std::string& gameName)
 {
+	//Todo: improve to allow any path (windows messagebox thingy)
 	std::string relativePath{ "../../../roms/" + gameName };
-	//Todo: Load game into memory
 	std::ifstream input(relativePath, std::ios::binary | std::ios::ate);
 	if (!input.is_open())
 	{
@@ -72,11 +74,12 @@ void Chip8::Interpreter::LoadGame(const std::string& gameName)
 		m_Memory[i + m_PC] = input.get();
 	}
 
-	std::cout << "Game loaded successfully\n";
+	Logger::GetInstance().Log("Game loaded successfully");
 }
 
 void Chip8::Interpreter::EmulateCycle()
 {
+	auto& logger = Logger::GetInstance();
 	////Todo: delete this temp
 	//m_Memory[m_PC] = 0xA2;
 	//m_Memory[m_PC + 1] = 0xF0;
@@ -91,25 +94,33 @@ void Chip8::Interpreter::EmulateCycle()
 	switch (instructionType)
 	{
 	case 0x0:
-		std::cout << "instructionType: 0\n";
+		//0x0NNN: don't implement
+		//0x00E0: Clears the screen
+		logger.Log("instructionType: 0");
+		Renderer::GetInstance().ClearScreen();
 		break;
 	case 0x1:
-		std::cout << "instructionType: 1\n";
+		//0x1NNN: Jump to address NNN
+		logger.Log("instructionType: 1");
 		break;
 	case 0x6:
-		std::cout << "instructionType: 6\n";
+		//0x6XNN: Set register vX to value NN
+		logger.Log("instructionType: 6");
 		break;
 	case 0x7:
-		std::cout << "instructionType: 7\n";
+		//0x7XNN: Add value NN to register vX
+		logger.Log("instructionType: 7");
 		break;
 	case 0xA:
-		std::cout << "instructionType: A\n";
+		//0xANNN: Set index register to value NNN
+		logger.Log("instructionType: A");
 		break;
 	case 0xD:
-		std::cout << "instructionType: D\n";
+		//0xDXYN: Draw/Render
+		logger.Log("instructionType: D");
 		break;
 	default:
-		std::cout << "instructionType: unknown\n";
+		logger.Log("instructionType: Unknown");
 		break;
 	}
 

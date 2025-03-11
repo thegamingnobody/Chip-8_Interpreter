@@ -28,11 +28,6 @@ void Chip8::Renderer::Init(int windowWidth, int windowHeight, float windowScale)
 
 	m_RenderTexture = SDL_CreateTexture(m_Renderer, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_TARGET, windowWidth, windowHeight);
 
-	//if (!SDL_CreateWindowAndRenderer("Interpreter Window", windowWidth * windowScale, windowHeight * windowScale, 0, &m_Window, &m_Renderer))
-	//{
-	//	throw std::runtime_error(std::string("SDL could not create window or renderer! SDL_Error: ") + SDL_GetError());
-	//}
-
 	m_BackgroundColor = SDL_Color();
 	m_BackgroundColor.r = 0;
 	m_BackgroundColor.g = 0;
@@ -43,15 +38,8 @@ void Chip8::Renderer::Init(int windowWidth, int windowHeight, float windowScale)
 	{
 		m_Screen[row].resize(windowWidth);
 	}
-	
-	////Initialize screen with a grid pattern
-	//for (int row = 0; row < windowHeight; row++)
-	//{
-	//	for (int column = 0; column < windowWidth; column++)
-	//	{
-	//		SetPixel(column, row, ((column + row) % 2));
-	//	}
-	//}
+
+	DrawGrid();
 }
 
 void Chip8::Renderer::Render() const
@@ -94,4 +82,24 @@ void Chip8::Renderer::Destroy()
 void Chip8::Renderer::SetPixel(int x, int y, bool value)
 {
 	m_Screen[y][x] = value;
+}
+
+void Chip8::Renderer::ClearScreen()
+{
+	for (int row = 0; row < m_HeightBase; row++)
+	{
+		std::fill(m_Screen[row].begin(), m_Screen[row].end(), false);
+	}
+}
+
+void Chip8::Renderer::DrawGrid()
+{
+	//Initialize screen with a grid pattern
+	for (int row = 0; row < m_HeightBase; row++)
+	{
+		for (int column = 0; column < m_WidthBase; column++)
+		{
+			SetPixel(column, row, ((column + row) % 2));
+		}
+	}
 }

@@ -28,8 +28,9 @@ set(PROJECT_SRC
     "src/TypeDefinitions.h"
     "src/ScreenManager.cpp"
     "src/ScreenManager.h"
+    "src/Logger.cpp"
+    "src/Logger.h" 
 )
-
 # Add source to this project's executable.
 add_executable(${PROJECT_NAME} ${PROJECT_SRC})
 

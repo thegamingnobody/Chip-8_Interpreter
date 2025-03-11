@@ -18,7 +18,11 @@ namespace Chip8
 
 		void SetPixel(int x, int y, bool value);
 
+		void ClearScreen();
+
 	private:
+		void DrawGrid();
+
 		int m_WidthBase;
 		int m_HeightBase;
 		float m_WindowScale;
