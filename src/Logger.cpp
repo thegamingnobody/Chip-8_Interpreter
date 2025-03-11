@@ -13,3 +13,20 @@ void Chip8::Logger::Log(const std::string& message) const
 		std::cout << message << "\n";
 	}
 }
+
+void Chip8::Logger::Log(const std::string& message, opcode address) const
+{
+	if (m_IsEnabled)
+	{
+		if (m_HexMode)
+		{
+			std::cout << std::hex;
+		}
+		else
+		{
+			std::cout << std::dec;
+		}
+
+		std::cout << message << " " << address << "\n";
+	}
+}

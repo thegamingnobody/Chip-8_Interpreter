@@ -91,17 +91,36 @@ void Chip8::Interpreter::EmulateCycle()
 	//get the value of the first 4 bits of the opcode to determine the instruction type
 	byte instructionType = (m_I & 0xF000) >> 8 >> 4;
 
+	//Todo: Execute opcode
 	switch (instructionType)
 	{
 	case 0x0:
-		//0x0NNN: don't implement
-		//0x00E0: Clears the screen
-		logger.Log("instructionType: 0");
-		Renderer::GetInstance().ClearScreen();
-		break;
+		{
+			//0x0NNN: don't implement
+			//0x00E0: Clears the screen
+			logger.Log("instructionType: 0");
+		
+			byte instructionParam = (m_I & 0x00FF);
+			if (instructionParam == 0xE0)
+			{
+				logger.SetHexMode();
+				logger.Log("[EXEC] instruction executed:", m_I);
+
+				Renderer::GetInstance().ClearScreen();
+				m_PC += 2;
+			}
+			else
+			{
+				logger.SetHexMode();
+				logger.Log("[ERROR] instruction invalid:", m_I);
+				logger.SetDecMode();
+			}
+			break;
+		}
 	case 0x1:
 		//0x1NNN: Jump to address NNN
 		logger.Log("instructionType: 1");
+		m_PC = m_I & 0x0FFF;
 		break;
 	case 0x6:
 		//0x6XNN: Set register vX to value NN
@@ -123,9 +142,6 @@ void Chip8::Interpreter::EmulateCycle()
 		logger.Log("instructionType: Unknown");
 		break;
 	}
-
-	//Todo: Execute opcode
-	m_PC += 2;
 
 	//Todo: Update timers
 }
