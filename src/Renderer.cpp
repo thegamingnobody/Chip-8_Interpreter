@@ -2,6 +2,7 @@
 #include <stdexcept>
 #include <iostream>
 #include "ScreenManager.h"
+#include <cassert>
 
 void Chip8::Renderer::Init(int windowWidth, int windowHeight, float windowScale)
 {
@@ -82,6 +83,20 @@ void Chip8::Renderer::Destroy()
 void Chip8::Renderer::SetPixel(int x, int y, bool value)
 {
 	m_Screen[y][x] = value;
+}
+
+void Chip8::Renderer::TogglePixel(int x, int y)
+{
+	bool isPixelOn = IsPixelOn(x, y);
+	SetPixel(x, y, !isPixelOn);
+}
+
+bool Chip8::Renderer::IsPixelOn(int x, int y) const
+{
+	assert(x >= 0 && x < m_WidthBase);
+	assert(y >= 0 && y < m_HeightBase);
+
+	return m_Screen[y][x];
 }
 
 void Chip8::Renderer::ClearScreen()

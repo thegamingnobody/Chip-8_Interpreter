@@ -6,8 +6,10 @@ int main()
 {
 	Chip8::Interpreter interpreter{};
 
-	std::string gameName{ "IBM_Logo.ch8" };
-	interpreter.LoadGame(gameName);
+	std::vector<std::string> gameNames{ "IBM_Logo.ch8", "1-chip8-logo.ch8" };
+	int const gameIndex{ 1 };
+
+	interpreter.LoadGame(gameNames[gameIndex]);
 
 	bool continueRunning{ true };
 	while (continueRunning)

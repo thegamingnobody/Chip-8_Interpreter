@@ -16,7 +16,13 @@ namespace Chip8
 		void SetBackgroundColor(const SDL_Color& newColor) { m_BackgroundColor = newColor; }
 		const SDL_Color& GetBackgroundColor() const { return m_BackgroundColor; }
 
+		int GetWidth() const { return m_WidthBase; }
+		int GetHeight() const { return m_HeightBase; }
+		float GetScale() const { return m_WindowScale; }
+
 		void SetPixel(int x, int y, bool value);
+		void TogglePixel(int x, int y);
+		bool IsPixelOn(int x, int y) const;
 
 		void ClearScreen();
 

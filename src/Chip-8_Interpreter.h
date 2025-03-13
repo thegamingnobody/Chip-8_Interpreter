@@ -29,7 +29,15 @@ namespace Chip8
 
 		bool SetkeyStates();
 
+		void Reset();
 	private:
+		void ClearMemory();
+		void ClearStack();
+		void ClearRegisters();
+		void LoadFontset();
+		void ResetTimers();
+		std::vector<bool> ByteToBits(byte byteValue) const;
+
 		//Main memory
 		std::vector<byte> m_Memory;
 
