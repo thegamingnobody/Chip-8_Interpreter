@@ -87,99 +87,33 @@ void Chip8::Interpreter::EmulateCycle()
 	//Todo: Execute opcode
 	bool instructionExecuted{ true };
 	
+	//Todo: Can this be improved/simplified?
 	switch (instructionType)
 	{
 	case 0x0:
 		//0x0NNN: don't implement
 		//0x00E0: Clears the screen		
-		{
-			byte instructionParam = (instructionThisCycle & 0x00FF);
-			if (instructionParam == 0xE0)
-			{
-				Renderer::GetInstance().ClearScreen();
-			}
-			else
-			{
-				instructionExecuted = false;
-			}
-			break;
-		}
+		instructionExecuted = Instruction_0NNN(instructionThisCycle);
+		break;
 	case 0x1:
 		//0x1NNN: Jump to address NNN
-		m_PC = instructionThisCycle & 0x0FFF;
-		m_PC -= 2; //Subtract 2 because the program counter is incremented by 2 after each instruction
+		instructionExecuted = Instruction_1NNN(instructionThisCycle);
 		break;
 	case 0x6:
 		//0x6XNN: Set register vX to value NN
-		{
-			int registerIndex = (instructionThisCycle & 0x0F00) >> 8;
-			byte value = instructionThisCycle & 0x00FF;
-			m_V[registerIndex] = value;
-		}
+		instructionExecuted = Instruction_6XNN(instructionThisCycle);
 		break;
 	case 0x7:
 		//0x7XNN: Add value NN to register vX
-		{
-			//Todo: Set Carry flag (how?) (or don't?)
-			int registerIndex = (instructionThisCycle & 0x0F00) >> 8;
-			byte value = instructionThisCycle & 0x00FF;
-			m_V[registerIndex] += value;
-		}
+		instructionExecuted = Instruction_7XNN(instructionThisCycle);
 		break;
 	case 0xA:
 		//0xANNN: Set index register to value NNN
-		{
-			opcode value = instructionThisCycle & 0x0FFF;
-			m_I = value;
-		}
+		instructionExecuted = Instruction_ANNN(instructionThisCycle);
 		break;
 	case 0xD:
 		//0xDXYN: Draw/Render
-		{
-			//Todo: make renderer 1 pixel per frame instead of all at once?
-			int xIndex = (instructionThisCycle & 0x0F00) >> 8;
-			int yIndex = (instructionThisCycle & 0x00F0) >> 4;
-			int height = (instructionThisCycle & 0x000F);
-
-			byte xCoordValue;
-			byte yCoordValue = m_V[yIndex] % renderer.GetHeight();
-			m_V[0xF] = 0;
-
-			for (int row = 0; row < height; row++)
-			{
-				xCoordValue = m_V[xIndex] % renderer.GetWidth();
-				if (yCoordValue > renderer.GetHeight())
-				{
-					continue;
-				}
-
-				byte spriteRow = m_Memory[m_I + row];
-
-				auto bits = ByteToBits(spriteRow);
-
-				for (int pixel = bits.size()-1; pixel >= 0 ; pixel--)
-				{
-					if (xCoordValue > renderer.GetWidth())
-					{
-						continue;
-					}
-
-					if (bits[pixel])
-					{
-						if (renderer.IsPixelOn(xCoordValue, yCoordValue))
-						{
-							m_V[0xF] = 1;
-						}
-						renderer.TogglePixel(xCoordValue, yCoordValue);
-					}
-					xCoordValue++;
-				}
-
-				yCoordValue++;
-			}
-
-			//Todo: Wrap X coordinate of starting position
-		}
+		instructionExecuted = Instruction_DXYN(instructionThisCycle);
 		break;
 	default:
 		instructionExecuted = false;
@@ -188,6 +122,7 @@ void Chip8::Interpreter::EmulateCycle()
 
 	m_PC += 2;
 
+//Todo: look up how debug/release mode werkt in CMake 
 #ifdef MY_DEBUG
 	if (instructionExecuted)
 	{
@@ -214,6 +149,7 @@ void Chip8::Interpreter::UpdateRender()
 
 bool Chip8::Interpreter::SetkeyStates()
 {
+	//Todo: handle input
 	return Chip8::InputManager::GetInstance().ProcessInput();
 }
 
@@ -258,6 +194,93 @@ void Chip8::Interpreter::ResetTimers()
 {
 	m_DelayTimer = 0;
 	m_SoundTimer = 0;
+}
+
+bool Chip8::Interpreter::Instruction_0NNN(opcode baseInstruction)
+{
+	byte instructionParam = (baseInstruction & 0x00FF);
+	if (instructionParam == 0xE0)
+	{
+		Renderer::GetInstance().ClearScreen();
+	}
+	else
+	{
+		return false;
+	}
+
+	return true;
+}
+bool Chip8::Interpreter::Instruction_1NNN(opcode baseInstruction)
+{
+	m_PC = baseInstruction & 0x0FFF;
+	m_PC -= 2; //Subtract 2 because the program counter is incremented by 2 after each instruction
+	return true;
+}
+bool Chip8::Interpreter::Instruction_6XNN(opcode baseInstruction)
+{
+	int registerIndex = (baseInstruction & 0x0F00) >> 8;
+	byte value = baseInstruction & 0x00FF;
+	m_V[registerIndex] = value;
+
+	return true;
+}
+bool Chip8::Interpreter::Instruction_7XNN(opcode baseInstruction)
+{
+	//Todo: Set Carry flag (how?) (or don't?)
+	int registerIndex = (baseInstruction & 0x0F00) >> 8;
+	byte value = baseInstruction & 0x00FF;
+	m_V[registerIndex] += value;
+
+	return true;
+}
+bool Chip8::Interpreter::Instruction_ANNN(opcode baseInstruction)
+{
+	opcode value = baseInstruction & 0x0FFF;
+	m_I = value;
+
+	return true;
+}
+bool Chip8::Interpreter::Instruction_DXYN(opcode baseInstruction)
+{
+	auto& renderer = Renderer::GetInstance();
+
+	//Todo: make renderer 1 pixel per frame instead of all at once?
+	int xIndex = (baseInstruction & 0x0F00) >> 8;
+	int yIndex = (baseInstruction & 0x00F0) >> 4;
+	int height = (baseInstruction & 0x000F);
+
+	byte xCoordValue;
+	byte yCoordValue = m_V[yIndex] % renderer.GetHeight();
+	m_V[0xF] = 0;
+
+	for (int row = 0; row < height; row++)
+	{
+		xCoordValue = m_V[xIndex] % renderer.GetWidth();
+
+		if (yCoordValue > renderer.GetHeight()) continue;
+
+		byte spriteRow = m_Memory[m_I + row];
+
+		auto bits = ByteToBits(spriteRow);
+
+		for (int pixel = bits.size() - 1; pixel >= 0; pixel--)
+		{
+			if (xCoordValue > renderer.GetWidth()) continue;
+
+			if (bits[pixel])
+			{
+				if (renderer.IsPixelOn(xCoordValue, yCoordValue))
+				{
+					m_V[0xF] = 1;
+				}
+				renderer.TogglePixel(xCoordValue, yCoordValue);
+			}
+			xCoordValue++;
+		}
+		yCoordValue++;
+	}
+
+	return true;
 }
 
 std::vector<bool> Chip8::Interpreter::ByteToBits(byte byteValue) const

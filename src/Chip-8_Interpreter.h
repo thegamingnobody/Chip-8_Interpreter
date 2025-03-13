@@ -31,11 +31,22 @@ namespace Chip8
 
 		void Reset();
 	private:
+		//Reset functions
 		void ClearMemory();
 		void ClearStack();
 		void ClearRegisters();
 		void LoadFontset();
 		void ResetTimers();
+
+		//Instruction functions
+		bool Instruction_0NNN(opcode baseInstruction);
+		bool Instruction_1NNN(opcode baseInstruction);
+		bool Instruction_6XNN(opcode baseInstruction);
+		bool Instruction_7XNN(opcode baseInstruction);
+		bool Instruction_ANNN(opcode baseInstruction);
+		bool Instruction_DXYN(opcode baseInstruction);
+
+
 		std::vector<bool> ByteToBits(byte byteValue) const;
 
 		//Main memory

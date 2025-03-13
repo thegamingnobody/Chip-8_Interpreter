@@ -45,6 +45,7 @@ void Chip8::Renderer::Init(int windowWidth, int windowHeight, float windowScale)
 
 void Chip8::Renderer::Render() const
 {
+	//Todo: Implement selectable color palettes
 	SDL_SetRenderScale(m_Renderer, m_WindowScale, m_WindowScale);
 
 	const auto& color = GetBackgroundColor();
