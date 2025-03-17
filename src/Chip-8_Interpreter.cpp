@@ -29,7 +29,7 @@ Chip8::Interpreter::Interpreter()
 	//Initialize Singletons
 	int const windowWidth{ 64 };
 	int const windowHeight{ 32 };
-	//Todo: Read in from config file?
+	//Todo: consider: Read in from config file?
 	float windowScale{ 16.0f };
 
 	//ScreenManager::GetInstance().Init(windowWidth, windowHeight, windowScale);
@@ -64,7 +64,7 @@ void Chip8::Interpreter::LoadGame(const std::string& gameName)
 	assert(fileSize < m_Memory.size());
 
 	//Copy input ifstream into m_Memory
-	//Todo: improve with a std algorithm
+	//Todo: consider: improve with a std algorithm
 	for (int i = 0; i < fileSize; ++i)
 	{
 		m_Memory[i + m_PC] = input.get();
@@ -86,10 +86,10 @@ void Chip8::Interpreter::EmulateCycle()
 	//get the value of the first 4 bits of the opcode to determine the instruction type
 	byte instructionType = (instructionThisCycle & 0xF000) >> 8 >> 4;
 
-	//Todo: Execute opcode
+	//Execute opcode
 	bool instructionExecuted{ true };
 	
-	//Todo: Can this be improved/simplified?
+	//Todo: consider: Can this be improved/simplified?
 	//=> funtion pointer vector?
 	switch (instructionType)
 	{
@@ -104,20 +104,20 @@ void Chip8::Interpreter::EmulateCycle()
 		instructionExecuted = Instruction_1NNN(instructionThisCycle);
 		break;
 	case 0x2:
-		//0x2NNN: Subroutine call. Jump to address NNN
-		//Todo: Implement 0x2NNN
+		//0x2NNN: Subroutine call
+		instructionExecuted = Instruction_2NNN(instructionThisCycle);
 		break;
 	case 0x3:
-		//0x3XNN: skip the next instruction if vX is equal to NN
-		//Todo: Implement 0x3XNN
+		//0x3XNN: skips
+		instructionExecuted = Instruction_3XNN(instructionThisCycle);
 		break;
 	case 0x4:
-		//0x4XNN: skip the next instruction if vX is NOT equal to NN
-		//Todo: Implement 0x4XNN
+		//0x4XNN: skips
+		instructionExecuted = Instruction_4XNN(instructionThisCycle);
 		break;
 	case 0x5:
-		//0x5XY0: skip the next instruction if vX is equal to vY
-		//Todo: Implement 0x5XY0
+		//0x5XY0: skips
+		instructionExecuted = Instruction_5XY0(instructionThisCycle);
 		break;
 	case 0x6:
 		//0x6XNN: Set register vX to value NN
@@ -128,64 +128,37 @@ void Chip8::Interpreter::EmulateCycle()
 		instructionExecuted = Instruction_7XNN(instructionThisCycle);
 		break;
 	case 0x8:
-		//Todo: CONFIG
-		//Todo: 0x8XYN: various different instructions based on the value of N
-		//Todo:		- 0x8XY0: vX is set to value of vY
-		//Todo:		- 0x8XY1: vX is set to the result of a binary OR  between vX and vY, vY is not affected
-		//Todo:		- 0x8XY2: vX is set to the result of a binary AND between vX and vY, vY is not affected
-		//Todo:		- 0x8XY3: vX is set to the result of a binary XOR between vX and vY, vY is not affected
-		//Todo:		- 0x8XY4: vX is set to vX + vY, vY is not affected. set vF to 1 if addition overflows, otherwise set vF to 0
-		//Todo:		- 0x8XY5: vX is set to vX - vY, vY is not affected. if vX is larger, set vF to 1, otherwise set vF to 0
-		//Todo:		- 0x8XY7: vX is set to vY - vX, vY is not affected. if vY is larger, set vF to 1, otherwise set vF to 0
-		//Todo:		- 0x8XY6: 1) (configurable) vX is set to vY 
-		//					  2) shift vX one bit to the right
-		//					  3) set vF to to the value of the bit that was shifted out
-		//Todo:		- 0x8XYE: 1) (configurable) vX is set to vY 
-		//					  2) shift vX one bit to the left
-		//					  3) set vF to to the value of the bit that was shifted out
+		//0x8XYN: [VARIOUS] various different instructions based on the value of N
+		instructionExecuted = Instruction_8XYN(instructionThisCycle);
 		break;
 	case 0x9:
-		//0x9XY0: skip the next instruction if vX is NOT equal to vY
-		//Todo: Implement 0x9XY0
+		//0x9XY0: skips
+		instructionExecuted = Instruction_9XY0(instructionThisCycle);
 		break;
 	case 0xA:
 		//0xANNN: Set index register to value NNN
 		instructionExecuted = Instruction_ANNN(instructionThisCycle);
 		break;
 	case 0xB:
-		//Todo: CONFIG
-		// 1) originally
-		//Todo: 	0xBNNN: jump to address (NNN + value in v0)
-		// 2) later on
-		//Todo:		0xBXNN: jump to address (XNN + value in vX)
+		//0xBNNN: [VARIOUS] jump to address
+		instructionExecuted = Instruction_BNNN(instructionThisCycle);
 		break;
 	case 0xC:
-		//Todo: 0xCXNN: 1) generate random number
-		//				2) binary AND random number with NN
-		//				3) store result of binary AND in vX
+		//0xCXNN: store RNG number in vX
+		instructionExecuted = Instruction_CXNN(instructionThisCycle);
 		break;
 	case 0xD:
 		//0xDXYN: Draw/Render
 		instructionExecuted = Instruction_DXYN(instructionThisCycle);
 		break;
 	case 0xE:
-		//Todo: 0xEX9E: skip next instruction if key corresponding to value in vX is pressed
-		//Todo: 0xEXA1: skip next instruction if key corresponding to value in vX is NOT pressed
-		//valid key values: 0 - F
+		//0xEXNN: [VARIOUS] skips
+		instructionExecuted = Instruction_EXNN(instructionThisCycle);
 		break;
 	case 0xF:
-		//Todo: 0xFX07: vX is set to current value of delay timer
-		//Todo: 0xFX15: delay timer is set to vX
-		//Todo: 0xFX18: sound timer is set to vX
-		//Todo: 0xFX1E: index register is set to (index register + vX) => I += vX
-		//Todo: 0xFX0A: stops instruction execution untill a key is pressed. Decrement PC unless a key is pressed. delay and sound timers should still decrease. When key is pressed, its value is placed in vX and executions continues
-		//				on OG machine, key is registered upon release of key
-		//Todo: 0xFX29: set index register to address of character 
-		//Todo: 0xFX33: stores 3 digit decimal version of value in vX at address in index register.							example: if vX is 156, I will be 1, I + 1 will be 5 and I + 2 will be 6
-		//Todo: 0xFX55: store values of registers v0 to vX (inclusive) sequeltially starting at address in index register,	example: I will be v0, I + 1 will be v1, I + 2 will be v2 etc.
-		//Todo: CONFIG
-		//Todo: 0xFX65: reverse of 0xFX55, stores values from I to I + X in v0 t vX. congif: does I increment or does it use a temp value
-		//Todo: 0xFX
+		//0xFXNN: [VARIOUS]	various instructions
+		instructionExecuted = Instruction_FXNN(instructionThisCycle);
+		break;
 	default:
 		instructionExecuted = false;
 		break;
@@ -286,6 +259,26 @@ bool Chip8::Interpreter::Instruction_1NNN(opcode baseInstruction)
 	m_PC -= 2; //Subtract 2 because the program counter is incremented by 2 after each instruction
 	return true;
 }
+bool Chip8::Interpreter::Instruction_2NNN(opcode baseInstruction)
+{
+	//Todo: 0x2NNN: Subroutine call. Jump to address NNN
+	return false;
+}
+bool Chip8::Interpreter::Instruction_3XNN(opcode baseInstruction)
+{
+	//Todo: 0x3XNN: skip the next instruction if vX is equal to NN
+	return false;
+}
+bool Chip8::Interpreter::Instruction_4XNN(opcode baseInstruction)
+{
+	//Todo: 0x4XNN: skip the next instruction if vX is NOT equal to NN
+	return false;
+}
+bool Chip8::Interpreter::Instruction_5XY0(opcode baseInstruction)
+{
+	//Todo: 0x5XY0: skip the next instruction if vX is equal to vY
+	return false;
+}
 bool Chip8::Interpreter::Instruction_6XNN(opcode baseInstruction)
 {
 	int registerIndex = (baseInstruction & 0x0F00) >> 8;
@@ -303,12 +296,52 @@ bool Chip8::Interpreter::Instruction_7XNN(opcode baseInstruction)
 
 	return true;
 }
+bool Chip8::Interpreter::Instruction_8XYN(opcode baseInstruction)
+{
+	//Todo: CONFIG
+	//Todo: 0x8XYN: various different instructions based on the value of N
+	//Todo:		- 0x8XY0: vX is set to value of vY
+	//Todo:		- 0x8XY1: vX is set to the result of a binary OR  between vX and vY, vY is not affected
+	//Todo:		- 0x8XY2: vX is set to the result of a binary AND between vX and vY, vY is not affected
+	//Todo:		- 0x8XY3: vX is set to the result of a binary XOR between vX and vY, vY is not affected
+	//Todo:		- 0x8XY4: vX is set to vX + vY, vY is not affected. set vF to 1 if addition overflows, otherwise set vF to 0
+	//Todo:		- 0x8XY5: vX is set to vX - vY, vY is not affected. if vX is larger, set vF to 1, otherwise set vF to 0
+	//Todo:		- 0x8XY7: vX is set to vY - vX, vY is not affected. if vY is larger, set vF to 1, otherwise set vF to 0
+	//Todo:		- 0x8XY6: 1) (configurable) vX is set to vY 
+	//					  2) shift vX one bit to the right
+	//					  3) set vF to to the value of the bit that was shifted out
+	//Todo:		- 0x8XYE: 1) (configurable) vX is set to vY 
+	//					  2) shift vX one bit to the left
+	//					  3) set vF to to the value of the bit that was shifted out
+	return false;
+}
+bool Chip8::Interpreter::Instruction_9XY0(opcode baseInstruction)
+{
+	//Todo: 0x9XY0: skip the next instruction if vX is NOT equal to vY
+	return false;
+}
 bool Chip8::Interpreter::Instruction_ANNN(opcode baseInstruction)
 {
 	opcode value = baseInstruction & 0x0FFF;
 	m_I = value;
 
 	return true;
+}
+bool Chip8::Interpreter::Instruction_BNNN(opcode baseInstruction)
+{
+	//Todo: CONFIG
+	// 1) originally
+	//Todo: 	0xBNNN: jump to address (NNN + value in v0)
+	// 2) later on
+	//Todo:		0xBXNN: jump to address (XNN + value in vX)
+	return false;
+}
+bool Chip8::Interpreter::Instruction_CXNN(opcode baseInstruction)
+{
+	//Todo: 0xCXNN: 1) generate random number
+	//				2) binary AND random number with NN
+	//				3) store result of binary AND in vX
+	return false;
 }
 bool Chip8::Interpreter::Instruction_DXYN(opcode baseInstruction)
 {
@@ -351,6 +384,29 @@ bool Chip8::Interpreter::Instruction_DXYN(opcode baseInstruction)
 	}
 
 	return true;
+}
+bool Chip8::Interpreter::Instruction_EXNN(opcode baseInstruction)
+{
+	//Todo: 0xEX9E: skip next instruction if key corresponding to value in vX is pressed
+	//Todo: 0xEXA1: skip next instruction if key corresponding to value in vX is NOT pressed
+	//valid key values: 0 - F
+	return false;
+}
+bool Chip8::Interpreter::Instruction_FXNN(opcode baseInstruction)
+{
+	//Todo: 0xFX07: vX is set to current value of delay timer
+	//Todo: 0xFX15: delay timer is set to vX
+	//Todo: 0xFX18: sound timer is set to vX
+	//Todo: 0xFX1E: index register is set to (index register + vX) => I += vX
+	//Todo: 0xFX0A: stops instruction execution untill a key is pressed. Decrement PC unless a key is pressed. delay and sound timers should still decrease. When key is pressed, its value is placed in vX and executions continues
+	//				on OG machine, key is registered upon release of key
+	//Todo: 0xFX29: set index register to address of character 
+	//Todo: 0xFX33: stores 3 digit decimal version of value in vX at address in index register.							example: if vX is 156, I will be 1, I + 1 will be 5 and I + 2 will be 6
+	//Todo: 0xFX55: store values of registers v0 to vX (inclusive) sequeltially starting at address in index register,	example: I will be v0, I + 1 will be v1, I + 2 will be v2 etc.
+	//Todo: CONFIG
+	//Todo: 0xFX65: reverse of 0xFX55, stores values from I to I + X in v0 t vX. congif: does I increment or does it use a temp value
+
+	return false;
 }
 
 std::vector<bool> Chip8::Interpreter::ByteToBits(byte byteValue) const
