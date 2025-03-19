@@ -39,8 +39,6 @@ void Chip8::Renderer::Init(int windowWidth, int windowHeight, float windowScale)
 	{
 		m_Screen[row].resize(windowWidth);
 	}
-
-	DrawGrid();
 }
 
 void Chip8::Renderer::Render() const
@@ -105,17 +103,5 @@ void Chip8::Renderer::ClearScreen()
 	for (int row = 0; row < m_HeightBase; row++)
 	{
 		std::fill(m_Screen[row].begin(), m_Screen[row].end(), false);
-	}
-}
-
-void Chip8::Renderer::DrawGrid()
-{
-	//Initialize screen with a grid pattern
-	for (int row = 0; row < m_HeightBase; row++)
-	{
-		for (int column = 0; column < m_WidthBase; column++)
-		{
-			SetPixel(column, row, ((column + row) % 2));
-		}
 	}
 }

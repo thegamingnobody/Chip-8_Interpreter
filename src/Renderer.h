@@ -27,8 +27,6 @@ namespace Chip8
 		void ClearScreen();
 
 	private:
-		void DrawGrid();
-
 		int m_WidthBase;
 		int m_HeightBase;
 		float m_WindowScale;
