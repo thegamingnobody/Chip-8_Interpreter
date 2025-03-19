@@ -258,7 +258,7 @@ void Chip8::Interpreter::ResetTimers()
 
 bool Chip8::Interpreter::Instruction_0NNN(opcode baseInstruction)
 {
-	//Todo: Implement 0x00EE: Return from subroutine
+	//Implement 0x00EE: Return from subroutine
 	byte instructionParam = (baseInstruction & 0x00FF);
 
 	switch (instructionParam)
@@ -279,7 +279,6 @@ bool Chip8::Interpreter::Instruction_0NNN(opcode baseInstruction)
 bool Chip8::Interpreter::Instruction_1NNN(opcode baseInstruction)
 {
 	m_PC = baseInstruction & 0x0FFF;
-	m_PC -= 2; //Subtract 2 because the program counter is incremented by 2 after each instruction
 	return true;
 }
 bool Chip8::Interpreter::Instruction_2NNN(opcode baseInstruction)
@@ -296,7 +295,7 @@ bool Chip8::Interpreter::Instruction_2NNN(opcode baseInstruction)
 }
 bool Chip8::Interpreter::Instruction_3XNN(opcode baseInstruction)
 {
-	//Todo: 0x3XNN: skip the next instruction if vX is equal to NN
+	//0x3XNN: skip the next instruction if vX is equal to NN
 	byte registerIndex = (baseInstruction & 0x0F00) >> 8;
 	byte value = (baseInstruction & 0x00FF);
 
@@ -313,7 +312,7 @@ bool Chip8::Interpreter::Instruction_3XNN(opcode baseInstruction)
 }
 bool Chip8::Interpreter::Instruction_4XNN(opcode baseInstruction)
 {
-	//Todo: 0x4XNN: skip the next instruction if vX is NOT equal to NN
+	//0x4XNN: skip the next instruction if vX is NOT equal to NN
 	byte registerIndex = (baseInstruction & 0x0F00) >> 8;
 	byte value = (baseInstruction & 0x00FF);
 
@@ -354,17 +353,17 @@ bool Chip8::Interpreter::Instruction_8XYN(opcode baseInstruction)
 {
 	//Todo: CONFIG
 	//Todo: 0x8XYN: various different instructions based on the value of N
-	//Todo:		- 0x8XY0: vX is set to value of vY
-	//Todo:		- 0x8XY1: vX is set to the result of a binary OR  between vX and vY, vY is not affected
-	//Todo:		- 0x8XY2: vX is set to the result of a binary AND between vX and vY, vY is not affected
-	//Todo:		- 0x8XY3: vX is set to the result of a binary XOR between vX and vY, vY is not affected
-	//Todo:		- 0x8XY4: vX is set to vX + vY, vY is not affected. set vF to 1 if addition overflows, otherwise set vF to 0
-	//Todo:		- 0x8XY5: vX is set to vX - vY, vY is not affected. if vX is larger, set vF to 1, otherwise set vF to 0
-	//Todo:		- 0x8XY7: vX is set to vY - vX, vY is not affected. if vY is larger, set vF to 1, otherwise set vF to 0
-	//Todo:		- 0x8XY6: 1) (configurable) vX is set to vY 
+	//			- 0x8XY0: vX is set to value of vY
+	//			- 0x8XY1: vX is set to the result of a binary OR  between vX and vY, vY is not affected
+	//			- 0x8XY2: vX is set to the result of a binary AND between vX and vY, vY is not affected
+	//			- 0x8XY3: vX is set to the result of a binary XOR between vX and vY, vY is not affected
+	//			- 0x8XY4: vX is set to vX + vY, vY is not affected. set vF to 1 if addition overflows, otherwise set vF to 0
+	//			- 0x8XY5: vX is set to vX - vY, vY is not affected. if vX is larger, set vF to 1, otherwise set vF to 0
+	//			- 0x8XY7: vX is set to vY - vX, vY is not affected. if vY is larger, set vF to 1, otherwise set vF to 0
+	//			- 0x8XY6: 1) (configurable) vX is set to vY 
 	//					  2) shift vX one bit to the right
 	//					  3) set vF to to the value of the bit that was shifted out
-	//Todo:		- 0x8XYE: 1) (configurable) vX is set to vY 
+	//			- 0x8XYE: 1) (configurable) vX is set to vY 
 	//					  2) shift vX one bit to the left
 	//					  3) set vF to to the value of the bit that was shifted out
 	byte registerXIndex = (baseInstruction & 0x0F00) >> 8;
@@ -489,7 +488,6 @@ bool Chip8::Interpreter::Instruction_DXYN(opcode baseInstruction)
 {
 	auto& renderer = Renderer::GetInstance();
 
-	//Todo: make renderer 1 pixel per frame instead of all at once?
 	int xIndex = (baseInstruction & 0x0F00) >> 8;
 	int yIndex = (baseInstruction & 0x00F0) >> 4;
 	int height = (baseInstruction & 0x000F);
