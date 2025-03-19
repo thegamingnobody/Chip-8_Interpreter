@@ -272,7 +272,6 @@ bool Chip8::Interpreter::Instruction_0NNN(opcode baseInstruction)
 		break;
 	default:
 		return false;
-		break;
 	}
 
 	return true;
@@ -285,7 +284,7 @@ bool Chip8::Interpreter::Instruction_1NNN(opcode baseInstruction)
 }
 bool Chip8::Interpreter::Instruction_2NNN(opcode baseInstruction)
 {
-	//Todo: 0x2NNN: Subroutine call. Jump to address NNN
+	//0x2NNN: Subroutine call. Jump to address NNN
 	opcode value = baseInstruction & 0xFFF;
 	//m_PC -= 2;
 
@@ -298,12 +297,36 @@ bool Chip8::Interpreter::Instruction_2NNN(opcode baseInstruction)
 bool Chip8::Interpreter::Instruction_3XNN(opcode baseInstruction)
 {
 	//Todo: 0x3XNN: skip the next instruction if vX is equal to NN
-	return false;
+	byte registerIndex = (baseInstruction & 0x0F00) >> 8;
+	byte value = (baseInstruction & 0x00FF);
+
+	assert(registerIndex <= 0xF);
+
+	byte registerValue = m_V[registerIndex];
+
+	if (registerValue == value)
+	{
+		m_PC += 2;
+	}
+
+	return true;
 }
 bool Chip8::Interpreter::Instruction_4XNN(opcode baseInstruction)
 {
 	//Todo: 0x4XNN: skip the next instruction if vX is NOT equal to NN
-	return false;
+	byte registerIndex = (baseInstruction & 0x0F00) >> 8;
+	byte value = (baseInstruction & 0x00FF);
+
+	assert(registerIndex <= 0xF);
+
+	byte registerValue = m_V[registerIndex];
+
+	if (registerValue != value)
+	{
+		m_PC += 2;
+	}
+
+	return true;
 }
 bool Chip8::Interpreter::Instruction_5XY0(opcode baseInstruction)
 {
