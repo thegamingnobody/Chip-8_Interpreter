@@ -7,7 +7,7 @@ int main()
 	Chip8::Interpreter interpreter{};
 
 	std::vector<std::string> gameNames{ "0-chip8-logo.ch8", "1-ibm-logo.ch8", "2-corax+.ch8" };
-	int const gameIndex{ 1 };
+	int const gameIndex{ 2 };
 
 	interpreter.LoadGame(gameNames[gameIndex]);
 
