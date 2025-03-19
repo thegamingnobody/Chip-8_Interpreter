@@ -28,17 +28,17 @@ Chip8::Interpreter::Interpreter()
 	m_Memory.resize(4096);
 	m_V.resize(16);
 
+
 	//Initialize Singletons
 	int const windowWidth{ 64 };
 	int const windowHeight{ 32 };
 	//Todo: consider: Read in from config file?
 	float windowScale{ 16.0f };
 
-	//ScreenManager::GetInstance().Init(windowWidth, windowHeight, windowScale);
 	Renderer::GetInstance().Init(windowWidth, windowHeight, windowScale);
 	InputManager::GetInstance().Init();
 
-	Logger::GetInstance().Init(true);
+	Logger::GetInstance().Init(false);
 
 	Reset();
 }
@@ -193,10 +193,10 @@ void Chip8::Interpreter::EmulateCycle(bool updateTimers)
 
 void Chip8::Interpreter::UpdateRender()
 {
+	Chip8::Renderer::GetInstance().Render();
 	if (m_DrawFlag)
 	{
 		m_DrawFlag = false;
-		Chip8::Renderer::GetInstance().Render();
 	}
 }
 
@@ -230,6 +230,7 @@ void Chip8::Interpreter::Reset()
 	m_PC = 0x0200;
 	m_I = 0;
 }
+
 
 void Chip8::Interpreter::ClearMemory()
 {
@@ -395,7 +396,7 @@ bool Chip8::Interpreter::Instruction_7XNN(opcode baseInstruction)
 bool Chip8::Interpreter::Instruction_8XYN(opcode baseInstruction)
 {
 	//Todo: CONFIG
-	//Todo: 0x8XYN: various different instructions based on the value of N
+	//	 0x8XYN: various different instructions based on the value of N
 	//			- 0x8XY0: vX is set to value of vY
 	//			- 0x8XY1: vX is set to the result of a binary OR  between vX and vY, vY is not affected
 	//			- 0x8XY2: vX is set to the result of a binary AND between vX and vY, vY is not affected

@@ -3,6 +3,10 @@
 #include <iostream>
 #include "ScreenManager.h"
 #include <cassert>
+#include <imgui.h>
+#include <backends/imgui_impl_sdl3.h>
+#include <backends/imgui_impl_sdlrenderer3.h>
+//#include <backends/imgui_impl_opengl3.h>
 
 void Chip8::Renderer::Init(int windowWidth, int windowHeight, float windowScale)
 {
@@ -39,18 +43,28 @@ void Chip8::Renderer::Init(int windowWidth, int windowHeight, float windowScale)
 	{
 		m_Screen[row].resize(windowWidth);
 	}
+
+	IMGUI_CHECKVERSION();
+	ImGui::CreateContext();
+	ImGui_ImplSDL3_InitForSDLRenderer(m_Window, m_Renderer);
+	ImGui_ImplSDLRenderer3_Init(m_Renderer);
 }
 
 void Chip8::Renderer::Render() const
 {
 	//Todo: Implement selectable color palettes
-	SDL_SetRenderScale(m_Renderer, m_WindowScale, m_WindowScale);
+	//SDL_SetRenderScale(m_Renderer, m_WindowScale, m_WindowScale);
 
 	const auto& color = GetBackgroundColor();
 	SDL_SetRenderDrawColor(m_Renderer, color.r, color.g, color.b, color.a);
 	SDL_RenderClear(m_Renderer);
 
-	//Chip8::ScreenManager::GetInstance().Render();
+	//ImGui_ImplOpenGL3_NewFrame();
+	ImGui_ImplSDLRenderer3_NewFrame();
+	ImGui_ImplSDL3_NewFrame();
+	ImGui::NewFrame();
+
+	ImGui::SetNextWindowPos(ImVec2(0.0f, 0.0f), ImGuiCond_Once);
 
 	for (int row = 0; row < m_Screen.size(); row++)
 	{
@@ -65,11 +79,22 @@ void Chip8::Renderer::Render() const
 		}
 	}
 
+
+	RenderImgui();
+
+	ImGui::Render();
+	ImGui_ImplSDLRenderer3_RenderDrawData(ImGui::GetDrawData(), m_Renderer);
+
 	SDL_RenderPresent(m_Renderer);
 }
 
 void Chip8::Renderer::Destroy()
 {
+	//ImGui_ImplOpenGL3_Shutdown();
+	ImGui_ImplSDLRenderer3_Shutdown();
+	ImGui_ImplSDL3_Shutdown();
+	ImGui::DestroyContext();
+
 	if (m_Renderer != nullptr)
 	{
 		SDL_DestroyRenderer(m_Renderer);
@@ -104,4 +129,15 @@ void Chip8::Renderer::ClearScreen()
 	{
 		std::fill(m_Screen[row].begin(), m_Screen[row].end(), false);
 	}
+}
+
+void Chip8::Renderer::RenderImgui() const
+{
+	ImGui::Begin("Test", nullptr, ImGuiWindowFlags_NoCollapse);
+
+	ImGui::ShowDemoWindow();
+
+	ImGui::Text("Calculating...");
+
+	ImGui::End();
 }

@@ -33,6 +33,8 @@ namespace Chip8
 		void UpdateTimers();
 
 		void Reset();
+
+	private:
 	private:
 		//Reset functions
 		void ClearMemory();

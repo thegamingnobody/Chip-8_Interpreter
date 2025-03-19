@@ -26,6 +26,8 @@ namespace Chip8
 
 		void ClearScreen();
 
+		void RenderImgui() const;
+
 	private:
 		int m_WidthBase;
 		int m_HeightBase;

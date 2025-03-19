@@ -2,6 +2,7 @@
 #include <SDL3/SDL.h>
 #include <Logger.h>
 #include <SDL3/SDL_keyboard.h>
+#include <backends/imgui_impl_sdl3.h>
 
 void Chip8::InputManager::Init()
 {
@@ -21,7 +22,9 @@ bool Chip8::InputManager::ProcessInput()
 		{
 			return false;
 		}
+		ImGui_ImplSDL3_ProcessEvent(&e);
 	}
+
 
 	CheckKeys();
 
