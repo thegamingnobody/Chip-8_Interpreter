@@ -38,7 +38,7 @@ Chip8::Interpreter::Interpreter()
 	Renderer::GetInstance().Init(windowWidth, windowHeight, windowScale);
 	InputManager::GetInstance().Init();
 
-	Logger::GetInstance().Init(false);
+	Logger::GetInstance().Init(true);
 
 	Reset();
 }
@@ -76,7 +76,7 @@ void Chip8::Interpreter::LoadGame(const std::string& gameName)
 	Logger::GetInstance().Log("Game loaded successfully");
 }
 
-void Chip8::Interpreter::EmulateCycle()
+void Chip8::Interpreter::EmulateCycle(bool updateTimers)
 {
 	auto& logger = Logger::GetInstance();
 	auto& renderer = Renderer::GetInstance();
@@ -171,7 +171,7 @@ void Chip8::Interpreter::EmulateCycle()
 	}
 
 //Todo: look up how debug/release mode werkt in CMake 
-#ifdef MY_DEBUG
+#ifdef DEBUG
 	if (instructionExecuted and not(m_WaitForInput))
 	{
 		logger.SetHexMode();
@@ -182,9 +182,13 @@ void Chip8::Interpreter::EmulateCycle()
 		logger.SetHexMode();
 		logger.Log("[ERROR] instruction failed:", instructionThisCycle);
 	}
-#endif // MY_DEBUG
+#endif // DEBUG
 
-	//Todo: Update timers
+	//Update timers
+	if (updateTimers)
+	{
+		UpdateTimers();
+	}
 }
 
 void Chip8::Interpreter::UpdateRender()
@@ -200,6 +204,18 @@ bool Chip8::Interpreter::SetkeyStates()
 {
 	//Todo: handle input
 	return Chip8::InputManager::GetInstance().ProcessInput();
+}
+
+void Chip8::Interpreter::UpdateTimers()
+{
+	if (m_DelayTimer > 0)
+	{
+		m_DelayTimer--;
+	}
+	if (m_SoundTimer > 0)
+	{
+		m_SoundTimer--;
+	}
 }
 
 void Chip8::Interpreter::Reset()
@@ -545,19 +561,20 @@ bool Chip8::Interpreter::Instruction_DXYN(opcode baseInstruction)
 
 	for (int row = 0; row < height; row++)
 	{
-		xCoordValue = m_V[xIndex] % renderer.GetWidth();
-
 		if (yCoordValue > renderer.GetHeight()) continue;
 
+		xCoordValue = m_V[xIndex] % renderer.GetWidth();
+
 		byte spriteRow = m_Memory[m_I + row];
+		int size = sizeof(spriteRow) * 8;
+		byte mask = 0b10000000;
+		//auto bits = ByteToBits(spriteRow);
 
-		auto bits = ByteToBits(spriteRow);
-
-		for (int pixel = bits.size() - 1; pixel >= 0; pixel--)
+		for (int pixel = 0; pixel < size; pixel++)
 		{
 			if (xCoordValue > renderer.GetWidth()) continue;
 
-			if (bits[pixel])
+			if (spriteRow & mask)
 			{
 				if (renderer.IsPixelOn(xCoordValue, yCoordValue))
 				{
@@ -565,6 +582,7 @@ bool Chip8::Interpreter::Instruction_DXYN(opcode baseInstruction)
 				}
 				renderer.TogglePixel(xCoordValue, yCoordValue);
 			}
+			mask = mask >> 1;
 			xCoordValue++;
 		}
 		yCoordValue++;

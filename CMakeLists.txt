@@ -32,7 +32,7 @@ set(PROJECT_SRC
     "src/Logger.h" 
 )
 
-set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -DMY_DEBUG")
+set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -DDEBUG")
 
 # Add source to this project's executable.
 add_executable(${PROJECT_NAME} ${PROJECT_SRC})

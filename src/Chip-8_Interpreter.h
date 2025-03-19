@@ -24,11 +24,13 @@ namespace Chip8
 		
 		void LoadGame(const std::string& gameName);
 
-		void EmulateCycle();
+		void EmulateCycle(bool updateTimers);
 
 		void UpdateRender();
 
 		bool SetkeyStates();
+
+		void UpdateTimers();
 
 		void Reset();
 	private:

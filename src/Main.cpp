@@ -17,7 +17,12 @@ int main()
 	bool continueRunning{ true };
 
 	int const targetInstructionsPerSecond{ 700 };
-	long long const msPerFrame = 1000 / targetInstructionsPerSecond;
+	long long const instructionMsPerFrame = 1000 / targetInstructionsPerSecond;
+
+	int const targetTimerUpdatesPerSecond{ 60 };
+	double const msPerTimerUpdate = 1 / targetTimerUpdatesPerSecond;
+	float timersTimer{};
+	bool updateTimers{ false };
 
 	auto lastTime = std::chrono::high_resolution_clock::now();
 	//int cyclesExecuted{};
@@ -27,12 +32,23 @@ int main()
 		auto const currentTime = std::chrono::high_resolution_clock::now();
 		float const deltaTime = std::chrono::duration<float>(currentTime - lastTime).count();
 		lastTime = currentTime;
+		timersTimer += deltaTime;
+
+		if (timersTimer >= msPerTimerUpdate)
+		{
+			timersTimer -= msPerTimerUpdate;
+			updateTimers = true;
+		}
+		else
+		{
+			updateTimers = false;
+		}
 
 		continueRunning = interpreter.SetkeyStates();
-		interpreter.EmulateCycle();
+		interpreter.EmulateCycle(updateTimers);
 		interpreter.UpdateRender();
 		
-		auto const sleepTime = std::chrono::milliseconds(msPerFrame) - (std::chrono::high_resolution_clock::now() - currentTime);
+		auto const sleepTime = std::chrono::milliseconds(instructionMsPerFrame) - (std::chrono::high_resolution_clock::now() - currentTime);
 		
 		std::this_thread::sleep_for(sleepTime);
 
