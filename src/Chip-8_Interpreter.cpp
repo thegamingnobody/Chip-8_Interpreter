@@ -70,8 +70,6 @@ void Chip8::Interpreter::LoadGame(const std::string& gameName)
 		m_Memory[i + m_PC] = input.get();
 	}
 
-	LoadFontset();
-
 	Logger::GetInstance().Log("Game loaded successfully");
 }
 
@@ -199,22 +197,15 @@ bool Chip8::Interpreter::SetkeyStates()
 
 void Chip8::Interpreter::Reset()
 {
-	m_PC = 0x0200;
-	m_I = 0;
-
-	//Todo: Clear display
 	Renderer::GetInstance().ClearScreen();
-	//Todo: Clear stack
 	ClearRegisters();
-	//Todo: Clear registers V0-VF
 	ClearRegisters();
-	//Todo: Clear memory
 	ClearMemory();
-	//Todo: Load fontset
 	LoadFontset();
-	//Todo: Reset timers
 	ResetTimers();
 
+	m_PC = 0x0200;
+	m_I = 0;
 }
 
 void Chip8::Interpreter::ClearMemory()
@@ -223,7 +214,8 @@ void Chip8::Interpreter::ClearMemory()
 }
 void Chip8::Interpreter::ClearStack()
 {
-	std::fill(m_Stack.begin(), m_Stack.end(), 0);
+	//std::fill(m_Stack.begin(), m_Stack.end(), 0);
+	m_Stack = std::stack<opcode>();
 	m_SP = 0;
 }
 void Chip8::Interpreter::ClearRegisters()
@@ -268,13 +260,19 @@ bool Chip8::Interpreter::Instruction_0NNN(opcode baseInstruction)
 {
 	//Todo: Implement 0x00EE: Return from subroutine
 	byte instructionParam = (baseInstruction & 0x00FF);
-	if (instructionParam == 0xE0)
+
+	switch (instructionParam)
 	{
+	case 0xE0:
 		Renderer::GetInstance().ClearScreen();
-	}
-	else
-	{
+		break;
+	case 0xEE:
+		m_PC = m_Stack.top();
+		m_Stack.pop();
+		break;
+	default:
 		return false;
+		break;
 	}
 
 	return true;
@@ -288,7 +286,14 @@ bool Chip8::Interpreter::Instruction_1NNN(opcode baseInstruction)
 bool Chip8::Interpreter::Instruction_2NNN(opcode baseInstruction)
 {
 	//Todo: 0x2NNN: Subroutine call. Jump to address NNN
-	return false;
+	opcode value = baseInstruction & 0xFFF;
+	//m_PC -= 2;
+
+	m_Stack.push(m_PC);
+
+	m_PC = value;
+
+	return true;
 }
 bool Chip8::Interpreter::Instruction_3XNN(opcode baseInstruction)
 {

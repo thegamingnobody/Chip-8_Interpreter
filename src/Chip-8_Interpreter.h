@@ -6,6 +6,7 @@
 #include "TypeDefinitions.h"
 #include <vector>
 #include <string>
+#include <stack>
 
 namespace Chip8
 {
@@ -70,7 +71,7 @@ namespace Chip8
 		std::vector<bool> m_Keys;
 
 		//Stack 
-		std::vector<byte> m_Stack;
+		std::stack<opcode> m_Stack;
 
 		//Index register
 		opcode m_I;
