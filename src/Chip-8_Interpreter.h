@@ -65,10 +65,6 @@ namespace Chip8
 
 		//Registers
 		std::vector<byte> m_V;
-		
-		//Keys
-		//todo: is bool correct type?
-		std::vector<bool> m_Keys;
 
 		//Stack 
 		std::stack<opcode> m_Stack;

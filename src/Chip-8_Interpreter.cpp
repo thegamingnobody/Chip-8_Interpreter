@@ -15,7 +15,6 @@
 Chip8::Interpreter::Interpreter()
 	: m_Memory()
 	, m_V()
-	, m_Keys()
 	, m_Stack()
 	, m_I(0)
 	, m_PC(0x0200)
@@ -28,7 +27,6 @@ Chip8::Interpreter::Interpreter()
 	//Resize memory to 4KB and initialize registers
 	m_Memory.resize(4096);
 	m_V.resize(16);
-	m_Keys.resize(16);
 
 	//Initialize Singletons
 	int const windowWidth{ 64 };
@@ -40,7 +38,7 @@ Chip8::Interpreter::Interpreter()
 	Renderer::GetInstance().Init(windowWidth, windowHeight, windowScale);
 	InputManager::GetInstance().Init();
 
-	Logger::GetInstance().Init(true);
+	Logger::GetInstance().Init(false);
 
 	Reset();
 }
@@ -193,6 +191,7 @@ void Chip8::Interpreter::UpdateRender()
 {
 	if (m_DrawFlag)
 	{
+		m_DrawFlag = false;
 		Chip8::Renderer::GetInstance().Render();
 	}
 }
@@ -571,6 +570,8 @@ bool Chip8::Interpreter::Instruction_DXYN(opcode baseInstruction)
 		yCoordValue++;
 	}
 
+	m_DrawFlag = true;
+
 	return true;
 }
 bool Chip8::Interpreter::Instruction_EXNN(opcode baseInstruction)
@@ -578,7 +579,34 @@ bool Chip8::Interpreter::Instruction_EXNN(opcode baseInstruction)
 	//Todo: 0xEX9E: skip next instruction if key corresponding to value in vX is pressed
 	//Todo: 0xEXA1: skip next instruction if key corresponding to value in vX is NOT pressed
 	//valid key values: 0 - F
-	return false;
+	auto& inputManager = InputManager::GetInstance();
+
+	byte registerXIndex = (baseInstruction & 0x0F00) >> 8;
+	byte subInstruction = (baseInstruction & 0x00FF);
+	
+	assert(registerXIndex <= 0xF);
+
+	byte XValue = m_V[registerXIndex];
+
+	switch (subInstruction)
+	{
+	case 0xA1:
+		if (not inputManager.IsKeyPressed(XValue))
+		{
+			m_PC += 2;
+		}
+		break;
+	case 0x9E:
+		if (inputManager.IsKeyPressed(XValue))
+		{
+			m_PC += 2;
+		}
+		break;
+	default:
+		break;
+	}
+
+	return true;
 }
 bool Chip8::Interpreter::Instruction_FXNN(opcode baseInstruction)
 {
