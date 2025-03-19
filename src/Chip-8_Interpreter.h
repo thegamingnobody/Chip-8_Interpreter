@@ -85,6 +85,7 @@ namespace Chip8
 		byte m_SP;
 
 		bool m_DrawFlag;
+		bool m_WaitForInput;
 	};
 
 }

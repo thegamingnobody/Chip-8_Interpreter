@@ -9,6 +9,9 @@
 #include <cassert>
 #include "Logger.h"
 
+#define FONTSET_ADDRESS 0x50
+#define CHARACTER_HEIGHT 5
+
 Chip8::Interpreter::Interpreter()
 	: m_Memory()
 	, m_V()
@@ -20,6 +23,7 @@ Chip8::Interpreter::Interpreter()
 	, m_SoundTimer()
 	, m_SP()
 	, m_DrawFlag(true)
+	, m_WaitForInput(false)
 {
 	//Resize memory to 4KB and initialize registers
 	m_Memory.resize(4096);
@@ -35,6 +39,7 @@ Chip8::Interpreter::Interpreter()
 	//ScreenManager::GetInstance().Init(windowWidth, windowHeight, windowScale);
 	Renderer::GetInstance().Init(windowWidth, windowHeight, windowScale);
 	InputManager::GetInstance().Init();
+
 	Logger::GetInstance().Init(true);
 
 	Reset();
@@ -80,7 +85,10 @@ void Chip8::Interpreter::EmulateCycle()
 
 	//Fetch opcode
 	opcode instructionThisCycle = m_Memory[m_PC] << 8 | m_Memory[m_PC + 1];
-	m_PC += 2;
+	if (not m_WaitForInput)
+	{
+		m_PC += 2;
+	}
 
 	//Decode opcode
 	//get the value of the first 4 bits of the opcode to determine the instruction type
@@ -166,12 +174,12 @@ void Chip8::Interpreter::EmulateCycle()
 
 //Todo: look up how debug/release mode werkt in CMake 
 #ifdef MY_DEBUG
-	if (instructionExecuted)
+	if (instructionExecuted and not(m_WaitForInput))
 	{
 		logger.SetHexMode();
 		logger.Log("[EXEC] instruction executed:", instructionThisCycle);
 	}
-	else
+	else if(not(m_WaitForInput))
 	{
 		logger.SetHexMode();
 		logger.Log("[ERROR] instruction failed:", instructionThisCycle);
@@ -224,7 +232,7 @@ void Chip8::Interpreter::ClearRegisters()
 }
 void Chip8::Interpreter::LoadFontset()
 {
-	m_PC = 0x050;
+	m_PC = FONTSET_ADDRESS;
 
 	std::vector<byte> font{ 0xF0, 0x90, 0x90, 0x90, 0xF0, // 0
 							0x20, 0x60, 0x20, 0x20, 0x70, // 1
@@ -574,19 +582,91 @@ bool Chip8::Interpreter::Instruction_EXNN(opcode baseInstruction)
 }
 bool Chip8::Interpreter::Instruction_FXNN(opcode baseInstruction)
 {
-	//Todo: 0xFX07: vX is set to current value of delay timer
-	//Todo: 0xFX15: delay timer is set to vX
-	//Todo: 0xFX18: sound timer is set to vX
-	//Todo: 0xFX1E: index register is set to (index register + vX) => I += vX
-	//Todo: 0xFX0A: stops instruction execution untill a key is pressed. Decrement PC unless a key is pressed. delay and sound timers should still decrease. When key is pressed, its value is placed in vX and executions continues
-	//				on OG machine, key is registered upon release of key
-	//Todo: 0xFX29: set index register to address of character 
-	//Todo: 0xFX33: stores 3 digit decimal version of value in vX at address in index register.							example: if vX is 156, I will be 1, I + 1 will be 5 and I + 2 will be 6
-	//Todo: 0xFX55: store values of registers v0 to vX (inclusive) sequeltially starting at address in index register,	example: I will be v0, I + 1 will be v1, I + 2 will be v2 etc.
-	//Todo: CONFIG
-	//Todo: 0xFX65: reverse of 0xFX55, stores values from I to I + X in v0 t vX. congif: does I increment or does it use a temp value
+	auto& logger = Logger::GetInstance();
 
-	return false;
+	byte registerXIndex = (baseInstruction & 0x0F00) >> 8;
+	byte subInstruction = (baseInstruction & 0x00FF);
+
+	assert(registerXIndex <= 0xF);
+
+	byte XValue = m_V[registerXIndex];
+
+	switch (subInstruction)
+	{
+	case 0x07:
+		//0xFX07: vX is set to current value of delay timer
+		m_V[registerXIndex] = m_DelayTimer;
+		break;
+	case 0x15:
+		//0xFX15: delay timer is set to vX
+		m_DelayTimer = XValue;
+		break;
+	case 0x18:
+		//0xFX18: sound timer is set to vX
+		m_SoundTimer = XValue;
+		break;
+	case 0x1E:
+		//0xFX1E: index register is set to (index register + vX) => I += vX
+		m_I += XValue;
+		break;
+	case 0x0A:
+		////Todo: 0xFX0A: stops instruction execution untill a key is pressed. Decrement PC unless a key is pressed. delay and sound timers should still decrease. When key is pressed, its value is placed in vX and executions continues
+		////				on OG machine, key is registered upon release of key
+		//if (not m_WaitForInput)
+		//{
+		//	m_WaitForInput = true;
+		//	logger.Log("Waiting for input...\n");
+		//}
+		//
+		return false;
+		break;
+	case 0x29:
+		//0xFX29: set index register to address of character 
+		m_I = FONTSET_ADDRESS + (CHARACTER_HEIGHT * XValue);
+		break;
+	case 0x33:
+		//0xFX33: stores 3 digit decimal version of value in vX at address in index register.							example: if vX is 156, I will be 1, I + 1 will be 5 and I + 2 will be 6
+		{
+			byte hundreds = XValue / 100;
+			byte tens = (XValue - hundreds * 100) / 10;
+			byte singleDigit = (XValue - hundreds * 100 - tens * 10);
+
+			m_Memory[m_I + 0] = hundreds;
+			m_Memory[m_I + 1] = tens;
+			m_Memory[m_I + 2] = singleDigit;
+		}
+		break;
+	case 0x55:
+		//Todo: CONFIG
+		//0xFX55: store values of registers v0 to vX (inclusive) sequeltially starting at address in index register,	example: I will be v0, I + 1 will be v1, I + 2 will be v2 etc.
+		for (int i = 0; i <= registerXIndex; i++)
+		{
+			//Option 1
+			m_Memory[m_I + i] = m_V[i];
+
+			////Option 2
+			//m_Memory[m_I] = m_V[i];
+			//m_I++;
+		}
+		break;
+	case 0x65:
+		//Todo: CONFIG
+		//0xFX65: reverse of 0xFX55, stores values from I to I + X in v0 t vX. congif: does I increment or does it use a temp value
+		for (int i = 0; i <= registerXIndex; i++)
+		{
+			//Option 1
+			m_V[i] = m_Memory[m_I + i];
+		
+			////Option 2
+			//m_V[i] = m_Memory[m_I];
+			//m_I++;
+		}
+		break;
+	default:
+		return false;
+	}
+
+	return true;
 }
 
 std::vector<bool> Chip8::Interpreter::ByteToBits(byte byteValue) const
@@ -601,23 +681,3 @@ std::vector<bool> Chip8::Interpreter::ByteToBits(byte byteValue) const
 
 	return bits;
 }
-
-//void Chip8::Interpreter::Run()
-//{
-//
-//	bool continueRunning{ true };
-//	int const targetFramerate{ 60 };
-//	long long const msPerFrame = 1000 / targetFramerate;
-//
-//	auto lastTime = std::chrono::high_resolution_clock::now();
-//	while (continueRunning)
-//	{
-//		auto const currentTime = std::chrono::high_resolution_clock::now();
-//		float const deltaTime = std::chrono::duration<float>(currentTime - lastTime).count();
-//		lastTime = currentTime;
-//
-//		auto const sleepTime = std::chrono::milliseconds(msPerFrame) - (std::chrono::high_resolution_clock::now() - currentTime);
-//
-//		std::this_thread::sleep_for(sleepTime);
-//	}
-//}
