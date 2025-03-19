@@ -329,8 +329,28 @@ bool Chip8::Interpreter::Instruction_4XNN(opcode baseInstruction)
 }
 bool Chip8::Interpreter::Instruction_5XY0(opcode baseInstruction)
 {
-	//Todo: 0x5XY0: skip the next instruction if vX is equal to vY
-	return false;
+	//0x5XY0: skip the next instruction if vX is equal to vY
+	byte registerXIndex = (baseInstruction & 0x0F00) >> 8;
+	byte registerYIndex = (baseInstruction & 0x00F0) >> 4;
+	byte subInstruction = (baseInstruction & 0x000F);
+
+	assert(registerXIndex <= 0xF);
+	assert(registerYIndex <= 0xF);
+
+	if (subInstruction != 0x0)
+	{
+		return false;
+	}
+
+	byte XValue = m_V[registerXIndex];
+	byte YValue = m_V[registerYIndex];
+
+	if (XValue == YValue)
+	{
+		m_PC += 2;
+	}
+
+	return true;
 }
 bool Chip8::Interpreter::Instruction_6XNN(opcode baseInstruction)
 {
@@ -458,8 +478,28 @@ bool Chip8::Interpreter::Instruction_8XYN(opcode baseInstruction)
 }
 bool Chip8::Interpreter::Instruction_9XY0(opcode baseInstruction)
 {
-	//Todo: 0x9XY0: skip the next instruction if vX is NOT equal to vY
-	return false;
+	//0x9XY0: skip the next instruction if vX is NOT equal to vY
+	byte registerXIndex = (baseInstruction & 0x0F00) >> 8;
+	byte registerYIndex = (baseInstruction & 0x00F0) >> 4;
+	byte subInstruction = (baseInstruction & 0x000F);
+
+	assert(registerXIndex <= 0xF);
+	assert(registerYIndex <= 0xF);
+
+	if (subInstruction != 0x0)
+	{
+		return false;
+	}
+
+	byte XValue = m_V[registerXIndex];
+	byte YValue = m_V[registerYIndex];
+
+	if (XValue != YValue)
+	{
+		m_PC += 2;
+	}
+
+	return true;
 }
 bool Chip8::Interpreter::Instruction_ANNN(opcode baseInstruction)
 {
