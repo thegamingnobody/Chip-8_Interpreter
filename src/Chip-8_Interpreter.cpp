@@ -30,10 +30,10 @@ Chip8::Interpreter::Interpreter()
 
 
 	//Initialize Singletons
-	int const windowWidth{ 64 };
-	int const windowHeight{ 32 };
+	int const windowWidth{ 640 };
+	int const windowHeight{ 480 };
 	//Todo: consider: Read in from config file?
-	float windowScale{ 8.0f };
+	float windowScale{ 2.0f };
 
 	Renderer::GetInstance().Init(windowWidth, windowHeight, windowScale);
 	InputManager::GetInstance().Init();
@@ -557,14 +557,14 @@ bool Chip8::Interpreter::Instruction_DXYN(opcode baseInstruction)
 	int height = (baseInstruction & 0x000F);
 
 	byte xCoordValue;
-	byte yCoordValue = m_V[yIndex] % renderer.GetHeight();
+	byte yCoordValue = m_V[yIndex] % renderer.GetViewportHeight();
 	m_V[0xF] = 0;
 
 	for (int row = 0; row < height; row++)
 	{
-		if (yCoordValue > renderer.GetHeight()) continue;
+		if (yCoordValue > renderer.GetViewportHeight()) continue;
 
-		xCoordValue = m_V[xIndex] % renderer.GetWidth();
+		xCoordValue = m_V[xIndex] % renderer.GetViewportWidth();
 
 		byte spriteRow = m_Memory[m_I + row];
 		int size = sizeof(spriteRow) * 8;
@@ -573,7 +573,7 @@ bool Chip8::Interpreter::Instruction_DXYN(opcode baseInstruction)
 
 		for (int pixel = 0; pixel < size; pixel++)
 		{
-			if (xCoordValue > renderer.GetWidth()) continue;
+			if (xCoordValue > renderer.GetViewportWidth()) continue;
 
 			if (spriteRow & mask)
 			{

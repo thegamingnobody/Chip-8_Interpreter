@@ -6,67 +6,18 @@
 #include <imgui.h>
 #include <backends/imgui_impl_sdl3.h>
 #include <backends/imgui_impl_sdlrenderer3.h>
-//#define _CRT_SECURE_NO_WARNINGS
-//#define STB_IMAGE_IMPLEMENTATION
-//#include "stb_image.h"
-//
-//bool LoadTextureFromMemory(const void* data, size_t data_size, SDL_Renderer* renderer, SDL_Texture** out_texture, int* out_width, int* out_height)
-//{
-//	int image_width = 0;
-//	int image_height = 0;
-//	int channels = 4;
-//	unsigned char* image_data = stbi_load_from_memory((const unsigned char*)data, (int)data_size, &image_width, &image_height, NULL, 4);
-//	if (image_data == nullptr)
-//	{
-//		fprintf(stderr, "Failed to load image: %s\n", stbi_failure_reason());
-//		return false;
-//	}
-//
-//	SDL_Surface* surface = SDL_CreateSurfaceFrom(image_width, image_height, SDL_PIXELFORMAT_RGBA32, (void*)image_data, channels * image_width);
-//	if (surface == nullptr)
-//	{
-//		fprintf(stderr, "Failed to create SDL surface: %s\n", SDL_GetError());
-//		return false;
-//	}
-//
-//	SDL_Texture* texture = SDL_CreateTextureFromSurface(renderer, surface);
-//	if (texture == nullptr)
-//		fprintf(stderr, "Failed to create SDL texture: %s\n", SDL_GetError());
-//
-//	*out_texture = texture;
-//	*out_width = image_width;
-//	*out_height = image_height;
-//
-//	SDL_DestroySurface(surface);
-//	stbi_image_free(image_data);
-//
-//	return true;
-//}
-//
-//// Open and read a file, then forward to LoadTextureFromMemory()
-//bool LoadTextureFromFile(const char* file_name, SDL_Renderer* renderer, SDL_Texture** out_texture, int* out_width, int* out_height)
-//{
-//	FILE* f = fopen(file_name, "rb");
-//	if (f == NULL)
-//		return false;
-//	fseek(f, 0, SEEK_END);
-//	size_t file_size = (size_t)ftell(f);
-//	if (file_size == -1)
-//		return false;
-//	fseek(f, 0, SEEK_SET);
-//	void* file_data = IM_ALLOC(file_size);
-//	fread(file_data, 1, file_size, f);
-//	fclose(f);
-//	bool ret = LoadTextureFromMemory(file_data, file_size, renderer, out_texture, out_width, out_height);
-//	IM_FREE(file_data);
-//	return ret;
-//}
 
 void Chip8::Renderer::Init(int windowWidth, int windowHeight, float windowScale)
 {
-	m_WidthBase = windowWidth;
-	m_HeightBase = windowHeight;
+	m_WindowWidthBase= windowWidth;
+	m_WindowHeightBase = windowHeight;
 	m_WindowScale = windowScale;
+
+	m_ViewportWidthBase = 64;
+	m_ViewportHeightBase = 32;
+	m_ViewportScale = 8.0f;
+
+	m_ScreenCleared = false;
 
 	if (SDL_Init(SDL_INIT_VIDEO) < 0)
 	{
@@ -74,7 +25,7 @@ void Chip8::Renderer::Init(int windowWidth, int windowHeight, float windowScale)
 	}
 
 	//m_Window = SDL_CreateWindow("Window", windowWidth * windowScale, windowHeight * windowScale, SDL_WINDOW_RESIZABLE);
-	m_Window = SDL_CreateWindow("Window", 640, 480, SDL_WINDOW_RESIZABLE);
+	m_Window = SDL_CreateWindow("Window", m_WindowWidthBase * m_WindowScale, m_WindowHeightBase * m_WindowScale, SDL_WINDOW_RESIZABLE);
 	if (!m_Window)
 	{
 		throw std::runtime_error(std::string("SDL could not create window! SDL_Error: ") + SDL_GetError());
@@ -88,7 +39,7 @@ void Chip8::Renderer::Init(int windowWidth, int windowHeight, float windowScale)
 
 	//SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "0");
 
-	m_RenderTexture = SDL_CreateTexture(m_Renderer, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_TARGET, windowWidth, windowHeight);
+	m_RenderTexture = SDL_CreateTexture(m_Renderer, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_TARGET, m_ViewportWidthBase, m_ViewportHeightBase);
 
 	m_BackgroundColor = SDL_Color();
 	m_BackgroundColor.r = 0;
@@ -112,23 +63,38 @@ void Chip8::Renderer::Render() const
 	//Todo: Implement selectable color palettes
 	SDL_SetRenderTarget(m_Renderer, m_RenderTexture);
 
+	//SDL_SetRenderScale(m_Renderer, m_WindowScale, m_WindowScale);
+
 	SDL_SetTextureScaleMode(m_RenderTexture, SDL_SCALEMODE_NEAREST);
 
 	//Todo: make changed pixel buffer
-	for (int row = 0; row < m_Screen.size(); row++)
+	//for (int row = 0; row < m_Screen.size(); row++)
+	//{
+	//	for (int column = 0; column < m_Screen[row].size(); column++)
+	//	{
+	//		if (m_Screen[row][column])
+	//		{
+	//			SDL_SetRenderDrawColor(m_Renderer, 255, 255, 255, 100);
+	//			SDL_RenderPoint(m_Renderer, column, row);
+	//		}
+	//		//else
+	//		//{
+	//		//	SDL_SetRenderDrawColor(m_Renderer, 0, 0, 0, 100);
+	//		//}
+	//	}
+	//}
+
+	for (Pixel pixel : m_ChangedPixels)
 	{
-		for (int column = 0; column < m_Screen[row].size(); column++)
+		if (m_Screen[pixel.y][pixel.x])
 		{
-			if (m_Screen[row][column])
-			{
-				SDL_SetRenderDrawColor(m_Renderer, 255, 255, 255, 100);
-			}
-			else
-			{
-				SDL_SetRenderDrawColor(m_Renderer, 0, 0, 0, 100);
-			}
-			SDL_RenderPoint(m_Renderer, column, row);
+			SDL_SetRenderDrawColor(m_Renderer, 255, 255, 255, 100);
 		}
+		else
+		{
+			SDL_SetRenderDrawColor(m_Renderer, 0, 0, 0, 100);
+		}
+		SDL_RenderPoint(m_Renderer, pixel.x, pixel.y);
 	}
 
 	SDL_SetRenderTarget(m_Renderer, NULL);
@@ -170,6 +136,7 @@ void Chip8::Renderer::Destroy()
 void Chip8::Renderer::SetPixel(int x, int y, bool value)
 {
 	m_Screen[y][x] = value;
+	m_ChangedPixels.emplace_back(x, y);
 }
 
 void Chip8::Renderer::TogglePixel(int x, int y)
@@ -180,15 +147,17 @@ void Chip8::Renderer::TogglePixel(int x, int y)
 
 bool Chip8::Renderer::IsPixelOn(int x, int y) const
 {
-	assert(x >= 0 && x < m_WidthBase);
-	assert(y >= 0 && y < m_HeightBase);
+	assert(x >= 0 && x < m_ViewportWidthBase);
+	assert(y >= 0 && y < m_ViewportHeightBase);
 
 	return m_Screen[y][x];
 }
 
 void Chip8::Renderer::ClearScreen()
 {
-	for (int row = 0; row < m_HeightBase; row++)
+	m_ScreenCleared = true;
+
+	for (int row = 0; row < m_ViewportHeightBase; row++)
 	{
 		std::fill(m_Screen[row].begin(), m_Screen[row].end(), false);
 	}
@@ -196,8 +165,8 @@ void Chip8::Renderer::ClearScreen()
 
 void Chip8::Renderer::RenderImgui() const
 {
-	ImGui::Begin("Viewport");
-	ImGui::Image((ImTextureID)(intptr_t)m_RenderTexture, ImVec2((float)m_WidthBase * m_WindowScale, (float)m_HeightBase * m_WindowScale));
+	ImGui::Begin("Viewport", nullptr, ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_AlwaysAutoResize);
+	ImGui::Image((ImTextureID)(intptr_t)m_RenderTexture, ImVec2((float)m_ViewportWidthBase * m_ViewportScale, (float)m_ViewportHeightBase * m_ViewportScale));
 	ImGui::End();
 }
 

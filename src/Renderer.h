@@ -6,6 +6,13 @@
 
 namespace Chip8
 {
+	struct Pixel
+	{
+		int x;
+		int y;
+		Pixel(int xpos = 0, int ypos = 0) : x(xpos), y(ypos) {}
+	};
+
 	class Renderer : public Singleton<Renderer>
 	{
 	public:
@@ -16,9 +23,13 @@ namespace Chip8
 		void SetBackgroundColor(const SDL_Color& newColor) { m_BackgroundColor = newColor; }
 		const SDL_Color& GetBackgroundColor() const { return m_BackgroundColor; }
 
-		int GetWidth() const { return m_WidthBase; }
-		int GetHeight() const { return m_HeightBase; }
-		float GetScale() const { return m_WindowScale; }
+		int GetWindowWidth() const { return m_WindowWidthBase; }
+		int GetWindowHeight() const { return m_WindowHeightBase; }
+		float GetWindowScale() const { return m_WindowScale; }
+
+		int GetViewportWidth() const { return m_ViewportWidthBase; }
+		int GetViewportHeight() const { return m_ViewportHeightBase; }
+		float GetViewportScale() const { return m_ViewportScale; }
 
 		void SetPixel(int x, int y, bool value);
 		void TogglePixel(int x, int y);
@@ -29,9 +40,13 @@ namespace Chip8
 		void RenderImgui() const;
 
 	private:
-		int m_WidthBase;
-		int m_HeightBase;
+		int m_WindowWidthBase;
+		int m_WindowHeightBase;
 		float m_WindowScale;
+
+		int m_ViewportWidthBase;
+		int m_ViewportHeightBase;
+		float m_ViewportScale;
 
 		SDL_Window* m_Window{};
 		SDL_Renderer* m_Renderer{};
@@ -40,5 +55,7 @@ namespace Chip8
 
 		//Screen
 		std::vector<std::vector<bool>> m_Screen;
+		std::vector<Pixel> m_ChangedPixels;
+		bool m_ScreenCleared;
 	};
 }

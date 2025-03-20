@@ -25,8 +25,8 @@ int main()
 	bool updateTimers{ false };
 
 	auto lastTime = std::chrono::high_resolution_clock::now();
-	//int cyclesExecuted{};
-	//float totalTime{};
+	int cyclesExecuted{};
+	float totalTime{};
 	while (continueRunning)
 	{
 		auto const currentTime = std::chrono::high_resolution_clock::now();
@@ -52,9 +52,9 @@ int main()
 		
 		std::this_thread::sleep_for(sleepTime);
 
-		//cyclesExecuted++;
-		//totalTime += deltaTime; 
-		//std::cout << "average cycles per second: " << (cyclesExecuted / totalTime) << "\n";
+		cyclesExecuted++;
+		totalTime += deltaTime; 
+		std::cout << "average cycles per second: " << (cyclesExecuted / totalTime) << "\n";
 	}
 
 	return 0;
