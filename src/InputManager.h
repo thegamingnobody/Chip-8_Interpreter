@@ -2,6 +2,7 @@
 
 #include "Singleton.h"
 #include <vector>
+#include "TypeDefinitions.h"
 
 namespace Chip8
 {
@@ -16,10 +17,11 @@ namespace Chip8
 		bool IsKeyPressedThisFrame() const { return m_KeyPressedThisFrame; }
 
 	private:
-		void CheckKeys();
-		void SetKey(int key);
+		//void CheckKeys();
+		void SetKey(int key, bool newState);
 
 		std::vector<bool> m_KeysState;
+		std::vector<byte> m_Keymap;
 
 		bool m_KeyPressedThisFrame;
 	};

@@ -35,7 +35,9 @@ set(PROJECT_SRC
     "src/TypeDefinitions.h"
     "src/Logger.cpp"
     "src/Logger.h" 
-)
+    "src/TimeManager.h" 
+    "src/TimeManager.cpp")
+
 set(IMGUI_SRC
     "${imgui_SOURCE_DIR}/imgui.cpp"
     "${imgui_SOURCE_DIR}/imgui_draw.cpp"

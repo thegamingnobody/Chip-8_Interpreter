@@ -3,9 +3,10 @@
 #include <iostream>
 #include "ScreenManager.h"
 #include <cassert>
-#include <imgui.h>
 #include <backends/imgui_impl_sdl3.h>
 #include <backends/imgui_impl_sdlrenderer3.h>
+#include "TimeManager.h"
+#include <filesystem>
 
 void Chip8::Renderer::Init(int windowWidth, int windowHeight, float windowScale)
 {
@@ -46,75 +47,99 @@ void Chip8::Renderer::Init(int windowWidth, int windowHeight, float windowScale)
 	m_BackgroundColor.g = 0;
 	m_BackgroundColor.b = 0;
 
-	m_Screen.resize(windowHeight);
-	for (int row = 0; row < windowHeight; row++)
+	m_Screen.resize(m_ViewportHeightBase);
+	for (int row = 0; row < m_ViewportHeightBase; row++)
 	{
-		m_Screen[row].resize(windowWidth);
+		m_Screen[row].resize(m_ViewportWidthBase);
 	}
 
 	IMGUI_CHECKVERSION();
 	ImGui::CreateContext();
 	ImGui_ImplSDL3_InitForSDLRenderer(m_Window, m_Renderer);
 	ImGui_ImplSDLRenderer3_Init(m_Renderer);
+
+	ImGuiIO& io = ImGui::GetIO();
+	m_Font = io.Fonts->AddFontFromFileTTF( "../../../ProggyClean.ttf", 24);
+
+	SDL_SetRenderDrawColor(m_Renderer, 0, 0, 0, 255);
+
+	for (int row = 0; row < m_Screen.size(); row++)
+	{
+		for (int col = 0; col < m_Screen[row].size(); col++)
+		{
+			SDL_RenderPoint(m_Renderer, col, row);
+		}
+	}
 }
 
-void Chip8::Renderer::Render() const
+void Chip8::Renderer::Render(bool drawFlag) const
 {
 	//Todo: Implement selectable color palettes
-	SDL_SetRenderTarget(m_Renderer, m_RenderTexture);
-
-	//SDL_SetRenderScale(m_Renderer, m_WindowScale, m_WindowScale);
-
-	SDL_SetTextureScaleMode(m_RenderTexture, SDL_SCALEMODE_NEAREST);
-
-	//Todo: make changed pixel buffer
-	//for (int row = 0; row < m_Screen.size(); row++)
-	//{
-	//	for (int column = 0; column < m_Screen[row].size(); column++)
-	//	{
-	//		if (m_Screen[row][column])
-	//		{
-	//			SDL_SetRenderDrawColor(m_Renderer, 255, 255, 255, 100);
-	//			SDL_RenderPoint(m_Renderer, column, row);
-	//		}
-	//		//else
-	//		//{
-	//		//	SDL_SetRenderDrawColor(m_Renderer, 0, 0, 0, 100);
-	//		//}
-	//	}
-	//}
-
-	for (Pixel pixel : m_ChangedPixels)
-	{
-		if (m_Screen[pixel.y][pixel.x])
-		{
-			SDL_SetRenderDrawColor(m_Renderer, 255, 255, 255, 100);
-		}
-		else
-		{
-			SDL_SetRenderDrawColor(m_Renderer, 0, 0, 0, 100);
-		}
-		SDL_RenderPoint(m_Renderer, pixel.x, pixel.y);
-	}
-
-	SDL_SetRenderTarget(m_Renderer, NULL);
+	SDL_SetRenderDrawColor(m_Renderer, 0, 0, 0, 255);
+	SDL_RenderClear(m_Renderer);
 
 	ImGui_ImplSDLRenderer3_NewFrame();
 	ImGui_ImplSDL3_NewFrame();
 	ImGui::NewFrame();
+	
+	if (drawFlag)
+	{
+		SDL_SetRenderTarget(m_Renderer, m_RenderTexture);
+		SDL_SetTextureScaleMode(m_RenderTexture, SDL_SCALEMODE_NEAREST);
 
-	ImGui::SetNextWindowPos(ImVec2(0.0f, 0.0f), ImGuiCond_Once);
+		if (m_ScreenCleared)
+		{
+			SDL_SetRenderDrawColor(m_Renderer, 0, 0, 0, 255);
+
+			for (int row = 0; row < m_Screen.size(); row++)
+			{
+				for (int col = 0; col < m_Screen[row].size(); col++)
+				{
+					SDL_RenderPoint(m_Renderer, col, row);
+				}
+			}
+		}
+		else
+		{
+			for (Pixel pixel : m_ChangedPixels)
+			{
+				if (m_Screen[pixel.y][pixel.x])
+				{
+					SDL_SetRenderDrawColor(m_Renderer, 255, 255, 255, 255);
+				}
+				else
+				{
+					SDL_SetRenderDrawColor(m_Renderer, 0, 0, 0, 255);
+				}
+				SDL_RenderPoint(m_Renderer, pixel.x, pixel.y);
+			}
+		}
+
+		SDL_SetRenderTarget(m_Renderer, NULL);
+	}
 
 	RenderImgui();
-
-	const auto& color = GetBackgroundColor();
-	SDL_SetRenderDrawColor(m_Renderer, color.r, color.g, color.b, color.a);
-	SDL_RenderClear(m_Renderer);
 
 	ImGui::Render();
 	ImGui_ImplSDLRenderer3_RenderDrawData(ImGui::GetDrawData(), m_Renderer);
 
 	SDL_RenderPresent(m_Renderer);
+}
+
+void Chip8::Renderer::Update()
+{
+	if (m_ChangedPixels.size() > 0)
+	{
+		m_ChangedPixels.clear();
+	}
+	if (m_ScreenCleared)
+	{
+		for (int row = 0; row < m_ViewportHeightBase; row++)
+		{
+			std::fill(m_Screen[row].begin(), m_Screen[row].end(), false);
+		}
+		m_ScreenCleared = false;
+	}
 }
 
 void Chip8::Renderer::Destroy()
@@ -147,26 +172,34 @@ void Chip8::Renderer::TogglePixel(int x, int y)
 
 bool Chip8::Renderer::IsPixelOn(int x, int y) const
 {
-	assert(x >= 0 && x < m_ViewportWidthBase);
-	assert(y >= 0 && y < m_ViewportHeightBase);
-
 	return m_Screen[y][x];
 }
 
 void Chip8::Renderer::ClearScreen()
 {
 	m_ScreenCleared = true;
-
-	for (int row = 0; row < m_ViewportHeightBase; row++)
-	{
-		std::fill(m_Screen[row].begin(), m_Screen[row].end(), false);
-	}
 }
 
 void Chip8::Renderer::RenderImgui() const
 {
+	ImGui::PushFont(m_Font);
+	auto& timer = Chip8::TimeManager::GetInstance();
+
+	ImGui::SetNextWindowPos(ImVec2(0.0f, 0.0f), ImGuiCond_Once);
+
 	ImGui::Begin("Viewport", nullptr, ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_AlwaysAutoResize);
 	ImGui::Image((ImTextureID)(intptr_t)m_RenderTexture, ImVec2((float)m_ViewportWidthBase * m_ViewportScale, (float)m_ViewportHeightBase * m_ViewportScale));
 	ImGui::End();
+
+	ImGui::SetNextWindowPos(ImVec2(0.0f, 300.0f), ImGuiCond_Once);
+
+	ImGui::Begin("Performance", nullptr, ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_AlwaysAutoResize);
+	std::string text{ "Instructions/s: " + std::to_string(timer.GetInstructionsPerSecond()) };
+	ImGui::Text(text.c_str());
+	ImGui::End();
+
+	ImGui::ShowDemoWindow();
+
+	ImGui::PopFont();
 }
 

@@ -8,6 +8,7 @@
 #include <filesystem>
 #include <cassert>
 #include "Logger.h"
+#include "TimeManager.h"
 
 #define FONTSET_ADDRESS 0x50
 #define CHARACTER_HEIGHT 5
@@ -39,6 +40,7 @@ Chip8::Interpreter::Interpreter()
 	InputManager::GetInstance().Init();
 
 	Logger::GetInstance().Init(false);
+	TimeManager::GetInstance().Init();
 
 	Reset();
 }
@@ -80,6 +82,9 @@ void Chip8::Interpreter::EmulateCycle(bool updateTimers)
 {
 	auto& logger = Logger::GetInstance();
 	auto& renderer = Renderer::GetInstance();
+	auto& timer = TimeManager::GetInstance();
+
+	timer.IncrementCycleCounter();
 
 	//Fetch opcode
 	opcode instructionThisCycle = m_Memory[m_PC] << 8 | m_Memory[m_PC + 1];
@@ -191,12 +196,13 @@ void Chip8::Interpreter::EmulateCycle(bool updateTimers)
 	}
 }
 
-void Chip8::Interpreter::UpdateRender()
+void Chip8::Interpreter::UpdateRender(bool updateGame)
 {
-	Chip8::Renderer::GetInstance().Render();
-	if (m_DrawFlag)
+	//Todo: use drawflag
+	if (updateGame)
 	{
-		m_DrawFlag = false;
+		Chip8::Renderer::GetInstance().Render(updateGame);
+		Chip8::Renderer::GetInstance().Update();
 	}
 }
 
@@ -568,14 +574,12 @@ bool Chip8::Interpreter::Instruction_DXYN(opcode baseInstruction)
 
 		byte spriteRow = m_Memory[m_I + row];
 		int size = sizeof(spriteRow) * 8;
-		byte mask = 0b10000000;
-		//auto bits = ByteToBits(spriteRow);
 
 		for (int pixel = 0; pixel < size; pixel++)
 		{
 			if (xCoordValue > renderer.GetViewportWidth()) continue;
 
-			if (spriteRow & mask)
+			if (spriteRow & (0x80 >> pixel))
 			{
 				if (renderer.IsPixelOn(xCoordValue, yCoordValue))
 				{
@@ -583,7 +587,6 @@ bool Chip8::Interpreter::Instruction_DXYN(opcode baseInstruction)
 				}
 				renderer.TogglePixel(xCoordValue, yCoordValue);
 			}
-			mask = mask >> 1;
 			xCoordValue++;
 		}
 		yCoordValue++;

@@ -3,6 +3,7 @@
 #include "Singleton.h"
 #include <SDL3/SDL.h>
 #include <vector>
+#include <imgui.h>
 
 namespace Chip8
 {
@@ -17,7 +18,8 @@ namespace Chip8
 	{
 	public:
 		void Init(int windowWidth, int windowHeight, float windowScale = 1.0f);
-		void Render() const;
+		void Render(bool drawFlag) const;
+		void Update();
 		void Destroy();
 
 		void SetBackgroundColor(const SDL_Color& newColor) { m_BackgroundColor = newColor; }
@@ -57,5 +59,6 @@ namespace Chip8
 		std::vector<std::vector<bool>> m_Screen;
 		std::vector<Pixel> m_ChangedPixels;
 		bool m_ScreenCleared;
+		ImFont* m_Font = nullptr;
 	};
 }

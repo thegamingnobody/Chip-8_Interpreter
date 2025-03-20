@@ -26,7 +26,7 @@ namespace Chip8
 
 		void EmulateCycle(bool updateTimers);
 
-		void UpdateRender();
+		void UpdateRender(bool updateGame);
 
 		bool SetkeyStates();
 
