@@ -33,7 +33,7 @@ Chip8::Interpreter::Interpreter()
 	int const windowWidth{ 64 };
 	int const windowHeight{ 32 };
 	//Todo: consider: Read in from config file?
-	float windowScale{ 16.0f };
+	float windowScale{ 8.0f };
 
 	Renderer::GetInstance().Init(windowWidth, windowHeight, windowScale);
 	InputManager::GetInstance().Init();

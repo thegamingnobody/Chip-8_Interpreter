@@ -23,12 +23,6 @@ FetchContent_Declare(
     )
 FetchContent_MakeAvailable(Imgui)
 
-add_library(GLAD STATIC 
-	"${CMAKE_CURRENT_SOURCE_DIR}/external/glad/include/glad/glad.h"	
-	"${CMAKE_CURRENT_SOURCE_DIR}/external/glad/src/glad.c")
-target_include_directories(GLAD PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/external/glad/include")
-
-
 set(PROJECT_SRC
     "src/Main.cpp"
     "src/Chip-8_Interpreter.cpp"
