@@ -1,4 +1,5 @@
 #include "TimeManager.h"
+#include <imgui.h>
 
 void Chip8::TimeManager::Init()
 {
@@ -55,4 +56,14 @@ std::chrono::milliseconds Chip8::TimeManager::GetSleepTime()
 	//Todo: replace magic number td::chrono::milliseconds(15) with variable
 	auto sleepTime = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::milliseconds(15) - (std::chrono::high_resolution_clock::now() - m_CurrentTime));
 	return sleepTime;
+}
+
+void Chip8::TimeManager::RenderImGui(std::string windowName)
+{
+	ImGui::Begin(windowName.c_str(), nullptr, ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_AlwaysAutoResize);
+
+	std::string text{ "Instructions/s: " + std::to_string(GetInstructionsPerSecond()) };
+	ImGui::Text(text.c_str());
+
+	ImGui::End();
 }

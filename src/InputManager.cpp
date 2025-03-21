@@ -16,7 +16,7 @@ void Chip8::InputManager::Init()
 bool Chip8::InputManager::ProcessInput()
 {
 	m_KeyPressedThisFrame = false;
-	std::fill(m_KeysState.begin(), m_KeysState.end(), false);
+	//std::fill(m_KeysState.begin(), m_KeysState.end(), false);
 
 	SDL_Event e;
 	while (SDL_PollEvent(&e)) 
@@ -135,6 +135,36 @@ bool Chip8::InputManager::IsKeyPressed(int key) const
 //		SetKey(0xF);
 //	}
 //}
+
+void Chip8::InputManager::RenderImGui(std::string windowName)
+{
+	ImGui::Begin(windowName.c_str());
+
+	std::vector<byte> keysOrder = { 0x1, 0x2, 0x3, 0xC, 0x4, 0x5, 0x6, 0xD, 0x7, 0x8, 0x9, 0xE, 0xA, 0x0, 0xB, 0xF };
+
+	ImGuiTableFlags flags = ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg;
+	if (ImGui::BeginTable("buttons pressed", 4, flags))
+	{
+		for (int row = 0; row < 4; row++)
+		{
+			ImGui::TableNextRow();
+			for (int column = 0; column < 4; column++)
+			{
+				ImGui::TableSetColumnIndex(column);
+				byte buttonID = keysOrder[column + (row * 4)];
+
+				std::string text{ std::to_string(buttonID) + ": " + std::to_string(m_KeysState[buttonID]) };
+				ImGui::Text(text.c_str());
+			}
+		}
+		ImGui::EndTable();
+	}
+
+	//ImGui::Text("")
+	
+
+	ImGui::End();
+}
 
 void Chip8::InputManager::SetKey(int key, bool newState)
 {

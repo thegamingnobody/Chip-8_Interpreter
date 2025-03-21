@@ -19,6 +19,8 @@ namespace Chip8
 
 		void IncrementCycleCounter() { m_CyclesExecuted++; }
 		int GetInstructionPerFrame() const { return m_InstructionsPerFrame; }
+
+		void RenderImGui(std::string windowName);
 	private:
 		float m_DeltaTime;
 

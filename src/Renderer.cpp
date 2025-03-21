@@ -6,7 +6,8 @@
 #include <backends/imgui_impl_sdl3.h>
 #include <backends/imgui_impl_sdlrenderer3.h>
 #include "TimeManager.h"
-#include <filesystem>
+#include "InputManager.h"
+#include <imgui_internal.h>
 
 void Chip8::Renderer::Init(int windowWidth, int windowHeight, float windowScale)
 {
@@ -60,6 +61,7 @@ void Chip8::Renderer::Init(int windowWidth, int windowHeight, float windowScale)
 
 	ImGuiIO& io = ImGui::GetIO();
 	m_Font = io.Fonts->AddFontFromFileTTF( "../../../ProggyClean.ttf", 24);
+	io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
 
 	SDL_SetRenderDrawColor(m_Renderer, 0, 0, 0, 255);
 
@@ -70,6 +72,9 @@ void Chip8::Renderer::Init(int windowWidth, int windowHeight, float windowScale)
 			SDL_RenderPoint(m_Renderer, col, row);
 		}
 	}
+
+	//Enable to reset layout
+	//ImGui::LoadIniSettingsFromMemory("");
 }
 
 void Chip8::Renderer::Render(bool drawFlag) const
@@ -184,21 +189,48 @@ void Chip8::Renderer::RenderImgui() const
 {
 	ImGui::PushFont(m_Font);
 	auto& timer = Chip8::TimeManager::GetInstance();
+	auto& input = Chip8::InputManager::GetInstance();
 
-	ImGui::SetNextWindowPos(ImVec2(0.0f, 0.0f), ImGuiCond_Once);
+	ImGuiIO& io = ImGui::GetIO();
+	if (io.ConfigFlags & ImGuiConfigFlags_DockingEnable) 
+	{
+		ImGui::SetNextWindowPos(ImVec2(0.0f, 0.0f), ImGuiCond_Always);
+		ImGui::Begin("##DockspaceWindow", nullptr, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove);
+		ImGuiDockNodeFlags dockspace_flags = ImGuiDockNodeFlags_PassthruCentralNode | ImGuiDockNodeFlags_NoUndocking | ImGuiDockNodeFlags_NoCloseButton;
+		ImGuiID dockspace_id = ImGui::GetID("MyDockspace");
+		ImGui::DockSpace(dockspace_id, ImVec2(m_WindowWidthBase * m_WindowScale, m_WindowHeightBase * m_WindowScale), dockspace_flags);
+		ImGui::End();
 
-	ImGui::Begin("Viewport", nullptr, ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_AlwaysAutoResize);
+		static auto first_time = true;
+		if (first_time)
+		{
+			first_time = false;
+			// Clear out existing layout
+			ImGui::DockBuilderRemoveNode(dockspace_id);
+			// Add empty node
+			ImGui::DockBuilderAddNode(dockspace_id, dockspace_flags | ImGuiDockNodeFlags_DockSpace);
+			// Main node should cover entire window
+			ImGui::DockBuilderSetNodeSize(dockspace_id, ImGui::GetWindowSize());
+			// get id of main dock space area
+			ImGuiID dockspace_main_id = dockspace_id;
+			ImGuiID right = ImGui::DockBuilderSplitNode(dockspace_main_id, ImGuiDir_Right, 1.00f, nullptr, &dockspace_main_id);
+			ImGuiID under = ImGui::DockBuilderSplitNode(dockspace_main_id, ImGuiDir_Down, 0.25f, nullptr, &dockspace_main_id);
+
+			ImGui::DockBuilderDockWindow("Viewport", dockspace_main_id);
+			ImGui::DockBuilderDockWindow("Performance", under);
+			ImGui::DockBuilderDockWindow("Input", right);
+			ImGui::DockBuilderFinish(dockspace_id);
+		}
+	}
+
+	ImGui::Begin("Viewport", nullptr, ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_AlwaysAutoResize);
 	ImGui::Image((ImTextureID)(intptr_t)m_RenderTexture, ImVec2((float)m_ViewportWidthBase * m_ViewportScale, (float)m_ViewportHeightBase * m_ViewportScale));
 	ImGui::End();
 
-	ImGui::SetNextWindowPos(ImVec2(0.0f, 300.0f), ImGuiCond_Once);
+	timer.RenderImGui("Performance");
+	input.RenderImGui("Input");
 
-	ImGui::Begin("Performance", nullptr, ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_AlwaysAutoResize);
-	std::string text{ "Instructions/s: " + std::to_string(timer.GetInstructionsPerSecond()) };
-	ImGui::Text(text.c_str());
-	ImGui::End();
-
-	ImGui::ShowDemoWindow();
+	//ImGui::ShowDemoWindow();
 
 	ImGui::PopFont();
 }

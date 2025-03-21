@@ -3,6 +3,7 @@
 #include "Singleton.h"
 #include <vector>
 #include "TypeDefinitions.h"
+#include <string>
 
 namespace Chip8
 {
@@ -16,6 +17,7 @@ namespace Chip8
 
 		bool IsKeyPressedThisFrame() const { return m_KeyPressedThisFrame; }
 
+		void RenderImGui(std::string windowName);
 	private:
 		//void CheckKeys();
 		void SetKey(int key, bool newState);
