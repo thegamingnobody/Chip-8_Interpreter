@@ -13,7 +13,7 @@ int main()
 	auto& timer = Chip8::TimeManager::GetInstance();
 
 	std::vector<std::string> gameNames{ "0-chip8-logo.ch8", "1-ibm-logo.ch8", "2-corax+.ch8", "3-flags.ch8", "4-quirks.ch8", "5-keypad.ch8", "test_opcode.ch8" };
-	int const gameIndex{ 5 };
+	int const gameIndex{ 1 };
 
 	interpreter.LoadGame(gameNames[gameIndex]);
 
@@ -35,10 +35,7 @@ int main()
 		interpreter.UpdateRender(shouldUpdateGame);
 
 		//Todo: Allow faster emulation
-		//std::this_thread::sleep_for(std::chrono::milliseconds(500));
-
 		auto sleepTime{ timer.GetSleepTime() };
-		//std::cout << sleepTime.count() << " Microseconds\n";
 		std::this_thread::sleep_for(sleepTime);
 	}
 

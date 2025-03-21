@@ -60,7 +60,7 @@ std::chrono::milliseconds Chip8::TimeManager::GetSleepTime()
 
 void Chip8::TimeManager::RenderImGui(std::string windowName)
 {
-	ImGui::Begin(windowName.c_str(), nullptr, ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_AlwaysAutoResize);
+	ImGui::Begin(windowName.c_str(), nullptr);
 
 	std::string text{ "Instructions/s: " + std::to_string(GetInstructionsPerSecond()) };
 	ImGui::Text(text.c_str());

@@ -4,6 +4,7 @@
 #include <SDL3/SDL.h>
 #include <vector>
 #include <imgui.h>
+#include "TypeDefinitions.h"
 
 namespace Chip8
 {
@@ -14,11 +15,12 @@ namespace Chip8
 		Pixel(int xpos = 0, int ypos = 0) : x(xpos), y(ypos) {}
 	};
 
+	//Todo: Split into smaller classes?
 	class Renderer : public Singleton<Renderer>
 	{
 	public:
 		void Init(int windowWidth, int windowHeight, float windowScale = 1.0f);
-		void Render(bool drawFlag) const;
+		void Render(bool drawFlag, Chip8::ProgramCounterInfo pcInfo) const;
 		void Update();
 		void Destroy();
 
@@ -39,7 +41,7 @@ namespace Chip8
 
 		void ClearScreen();
 
-		void RenderImgui() const;
+		void RenderImgui(Chip8::ProgramCounterInfo pcInfo) const;
 
 	private:
 		int m_WindowWidthBase;

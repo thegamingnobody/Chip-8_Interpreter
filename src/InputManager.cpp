@@ -159,10 +159,6 @@ void Chip8::InputManager::RenderImGui(std::string windowName)
 		}
 		ImGui::EndTable();
 	}
-
-	//ImGui::Text("")
-	
-
 	ImGui::End();
 }
 

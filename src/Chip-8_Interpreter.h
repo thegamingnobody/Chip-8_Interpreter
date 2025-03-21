@@ -33,8 +33,6 @@ namespace Chip8
 		void UpdateTimers();
 
 		void Reset();
-
-	private:
 	private:
 		//Reset functions
 		void ClearMemory();
@@ -62,7 +60,7 @@ namespace Chip8
 		bool Instruction_EXNN(opcode baseInstruction);
 		bool Instruction_FXNN(opcode baseInstruction);
 
-		std::vector<bool> ByteToBits(byte byteValue) const;
+		Chip8::ProgramCounterInfo CreateProgramCounterInfo();
 
 		//Main memory
 		std::vector<byte> m_Memory;

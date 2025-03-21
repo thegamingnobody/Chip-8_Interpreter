@@ -74,10 +74,10 @@ void Chip8::Renderer::Init(int windowWidth, int windowHeight, float windowScale)
 	}
 
 	//Enable to reset layout
-	//ImGui::LoadIniSettingsFromMemory("");
+	ImGui::LoadIniSettingsFromMemory("");
 }
 
-void Chip8::Renderer::Render(bool drawFlag) const
+void Chip8::Renderer::Render(bool drawFlag, Chip8::ProgramCounterInfo pcInfo) const
 {
 	//Todo: Implement selectable color palettes
 	SDL_SetRenderDrawColor(m_Renderer, 0, 0, 0, 255);
@@ -104,26 +104,25 @@ void Chip8::Renderer::Render(bool drawFlag) const
 				}
 			}
 		}
-		else
+
+		for (Pixel pixel : m_ChangedPixels)
 		{
-			for (Pixel pixel : m_ChangedPixels)
+			if (m_Screen[pixel.y][pixel.x])
 			{
-				if (m_Screen[pixel.y][pixel.x])
-				{
-					SDL_SetRenderDrawColor(m_Renderer, 255, 255, 255, 255);
-				}
-				else
-				{
-					SDL_SetRenderDrawColor(m_Renderer, 0, 0, 0, 255);
-				}
-				SDL_RenderPoint(m_Renderer, pixel.x, pixel.y);
+				SDL_SetRenderDrawColor(m_Renderer, 255, 255, 255, 255);
 			}
+			else
+			{
+				SDL_SetRenderDrawColor(m_Renderer, 0, 0, 0, 255);
+			}
+			SDL_RenderPoint(m_Renderer, pixel.x, pixel.y);
 		}
+
 
 		SDL_SetRenderTarget(m_Renderer, NULL);
 	}
 
-	RenderImgui();
+	RenderImgui(pcInfo);
 
 	ImGui::Render();
 	ImGui_ImplSDLRenderer3_RenderDrawData(ImGui::GetDrawData(), m_Renderer);
@@ -185,7 +184,7 @@ void Chip8::Renderer::ClearScreen()
 	m_ScreenCleared = true;
 }
 
-void Chip8::Renderer::RenderImgui() const
+void Chip8::Renderer::RenderImgui(Chip8::ProgramCounterInfo pcInfo) const
 {
 	ImGui::PushFont(m_Font);
 	auto& timer = Chip8::TimeManager::GetInstance();
@@ -213,12 +212,14 @@ void Chip8::Renderer::RenderImgui() const
 			ImGui::DockBuilderSetNodeSize(dockspace_id, ImGui::GetWindowSize());
 			// get id of main dock space area
 			ImGuiID dockspace_main_id = dockspace_id;
-			ImGuiID right = ImGui::DockBuilderSplitNode(dockspace_main_id, ImGuiDir_Right, 1.00f, nullptr, &dockspace_main_id);
-			ImGuiID under = ImGui::DockBuilderSplitNode(dockspace_main_id, ImGuiDir_Down, 0.25f, nullptr, &dockspace_main_id);
+			ImGuiID input_id = ImGui::DockBuilderSplitNode(dockspace_main_id, ImGuiDir_Right, 1.0f, nullptr, &dockspace_main_id);
+			ImGuiID performance_id = ImGui::DockBuilderSplitNode(dockspace_main_id, ImGuiDir_Down, 0.25f, nullptr, &dockspace_main_id);
+			ImGuiID memory_id = ImGui::DockBuilderSplitNode(input_id, ImGuiDir_Down, 0.5f, nullptr, &input_id);
 
 			ImGui::DockBuilderDockWindow("Viewport", dockspace_main_id);
-			ImGui::DockBuilderDockWindow("Performance", under);
-			ImGui::DockBuilderDockWindow("Input", right);
+			ImGui::DockBuilderDockWindow("Performance", performance_id);
+			ImGui::DockBuilderDockWindow("Input", input_id);
+			ImGui::DockBuilderDockWindow("Memory", memory_id);
 			ImGui::DockBuilderFinish(dockspace_id);
 		}
 	}
@@ -230,7 +231,53 @@ void Chip8::Renderer::RenderImgui() const
 	timer.RenderImGui("Performance");
 	input.RenderImGui("Input");
 
-	//ImGui::ShowDemoWindow();
+	ImGui::Begin("Memory", nullptr);
+		ImGuiTableFlags flags = ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg;
+		if (ImGui::BeginTable("Memory", 3, flags))
+		{
+			ImGui::TableSetupColumn("PC");
+			ImGui::TableSetupColumn("Address");
+			ImGui::TableSetupColumn("Value");
+			ImGui::TableHeadersRow();
+
+			for (int row = 0; row < 5; row++)
+			{
+				ImGui::TableNextRow();
+				for (int column = 0; column < 3; column++)
+				{
+					ImGui::TableSetColumnIndex(column);
+					switch (column)
+					{
+					case 0:
+						if (row == 2)
+						{
+							ImGui::Text("=>");
+						}
+						else
+						{
+							ImGui::Text("  ");
+						}
+						break;
+					case 1:
+						{
+							std::stringstream stream;
+							stream << "0x" << std::hex << pcInfo.CurrentProgramCounter + (2 * (row - 2));
+							ImGui::Text(stream.str().c_str());
+						}
+						break;
+					case 2:
+						{
+							std::stringstream stream;
+							stream << "0x" << std::hex << pcInfo.MemoryValuesAtPC[row];
+							ImGui::Text(stream.str().c_str());
+						}
+						break;
+					}
+				}
+			}
+			ImGui::EndTable();
+		}
+	ImGui::End();
 
 	ImGui::PopFont();
 }

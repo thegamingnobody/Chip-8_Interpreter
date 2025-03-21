@@ -1,4 +1,5 @@
 ﻿#include "Chip-8_Interpreter.h"
+#include "TypeDefinitions.h"
 #include "Renderer.h"
 #include "InputManager.h"
 #include <chrono>
@@ -201,14 +202,14 @@ void Chip8::Interpreter::UpdateRender(bool updateGame)
 	//Todo: use drawflag
 	if (updateGame)
 	{
-		Chip8::Renderer::GetInstance().Render(updateGame);
+		auto pcInfo = CreateProgramCounterInfo();
+		Chip8::Renderer::GetInstance().Render(updateGame, pcInfo);
 		Chip8::Renderer::GetInstance().Update();
 	}
 }
 
 bool Chip8::Interpreter::SetkeyStates()
 {
-	//Todo: handle input
 	return Chip8::InputManager::GetInstance().ProcessInput();
 }
 
@@ -236,7 +237,6 @@ void Chip8::Interpreter::Reset()
 	m_PC = 0x0200;
 	m_I = 0;
 }
-
 
 void Chip8::Interpreter::ClearMemory()
 {
@@ -719,15 +719,17 @@ bool Chip8::Interpreter::Instruction_FXNN(opcode baseInstruction)
 	return true;
 }
 
-std::vector<bool> Chip8::Interpreter::ByteToBits(byte byteValue) const
+Chip8::ProgramCounterInfo Chip8::Interpreter::CreateProgramCounterInfo()
 {
-	//Todo: optimize
-	std::vector<bool> bits(8);
+	Chip8::ProgramCounterInfo result;
 
-	for (int i = 0; i < 8; ++i)
+	result.CurrentProgramCounter = m_PC;
+
+	for (int i = 0; i < result.MemoryValuesSize; i++)
 	{
-		bits[i] = (byteValue & (1 << i)) != 0;
+		opcode instruction = m_Memory[(m_PC + ((i - 2) * 2))] << 8 | m_Memory[(m_PC + ((i - 2) * 2)) + 1];
+		result.MemoryValuesAtPC.emplace_back(instruction);
 	}
 
-	return bits;
+	return result;
 }
