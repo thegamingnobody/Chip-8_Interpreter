@@ -1,0 +1,27 @@
+# This starter workflow is for a CMake project running on multiple platforms. There is a different starter workflow if you just want a single platform.
+# See: https://github.com/actions/starter-workflows/blob/main/ci/cmake-single-platform.yml
+name: CMake on multiple platforms
+
+on:
+  push:
+    branches: [ "main" ]
+  workflow_dispatch:
+
+jobs:
+    build-and-test:
+        strategy:
+            matrix:
+                os: [ubuntu-latest, windows-latest, macos-latest]
+        runs-on: ${{ matrix.os }}
+
+        steps:
+            - uses: actions/checkout@v3
+
+            - name: Configure CMake
+              run: cmake -B build/ -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DBUILD_TESTS=ON
+
+            - name: Build Project
+              run: cmake --build build/ --config ${{env.BUILD_TYPE}}
+
+            - name: Run Tests
+              run: ctest --test-dir build/
