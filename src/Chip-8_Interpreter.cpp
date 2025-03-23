@@ -197,17 +197,6 @@ void Chip8::Interpreter::EmulateCycle(bool updateTimers)
 	}
 }
 
-void Chip8::Interpreter::UpdateRender(bool updateGame)
-{
-	//Todo: use drawflag
-	if (updateGame)
-	{
-		auto pcInfo = CreateProgramCounterInfo();
-		Chip8::Renderer::GetInstance().Render(updateGame, pcInfo);
-		Chip8::Renderer::GetInstance().Update();
-	}
-}
-
 bool Chip8::Interpreter::SetkeyStates()
 {
 	return Chip8::InputManager::GetInstance().ProcessInput();

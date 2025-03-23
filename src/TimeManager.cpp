@@ -21,11 +21,14 @@ void Chip8::TimeManager::Init()
 	m_PerSecondStatsMaxDelay = 1.0f;
 }
 
-void Chip8::TimeManager::UpdateTime()
+void Chip8::TimeManager::UpdateTime(bool isGamePaused)
 {
 	m_CurrentTime = std::chrono::high_resolution_clock::now();
 	m_DeltaTime = std::chrono::duration<float>(m_CurrentTime - m_LastTime).count();
 	m_LastTime = m_CurrentTime;
+
+	if (isGamePaused) return;
+
 	m_TimersTimer += m_DeltaTime;
 	m_PerSecondStatsDelay += m_DeltaTime;
 

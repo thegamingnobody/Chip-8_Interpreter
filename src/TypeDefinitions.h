@@ -13,4 +13,10 @@ namespace Chip8
 		std::vector<opcode> MemoryValuesAtPC;
 		int const MemoryValuesSize{ 5 };
 	};
+
+	enum class EmulatorStates
+	{
+		Running,
+		Paused
+	};
 }

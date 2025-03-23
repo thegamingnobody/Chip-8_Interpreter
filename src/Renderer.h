@@ -20,7 +20,7 @@ namespace Chip8
 	{
 	public:
 		void Init(int windowWidth, int windowHeight, float windowScale = 1.0f);
-		void Render(bool drawFlag, Chip8::ProgramCounterInfo pcInfo) const;
+		Chip8::EmulatorStates Render(bool drawFlag, Chip8::ProgramCounterInfo pcInfo, Chip8::EmulatorStates emulatorState) const;
 		void Update();
 		void Destroy();
 
@@ -41,9 +41,11 @@ namespace Chip8
 
 		void ClearScreen();
 
-		void RenderImgui(Chip8::ProgramCounterInfo pcInfo) const;
+		EmulatorStates RenderImgui(Chip8::ProgramCounterInfo pcInfo, Chip8::EmulatorStates emulatorState) const;
 
 	private:
+		void UpdateRenderTexture() const;
+
 		int m_WindowWidthBase;
 		int m_WindowHeightBase;
 		float m_WindowScale;

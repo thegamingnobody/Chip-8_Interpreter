@@ -77,7 +77,7 @@ void Chip8::Renderer::Init(int windowWidth, int windowHeight, float windowScale)
 	ImGui::LoadIniSettingsFromMemory("");
 }
 
-void Chip8::Renderer::Render(bool drawFlag, Chip8::ProgramCounterInfo pcInfo) const
+Chip8::EmulatorStates Chip8::Renderer::Render(bool drawFlag, Chip8::ProgramCounterInfo pcInfo, Chip8::EmulatorStates emulatorState) const
 {
 	//Todo: Implement selectable color palettes
 	SDL_SetRenderDrawColor(m_Renderer, 0, 0, 0, 255);
@@ -89,45 +89,17 @@ void Chip8::Renderer::Render(bool drawFlag, Chip8::ProgramCounterInfo pcInfo) co
 	
 	if (drawFlag)
 	{
-		SDL_SetRenderTarget(m_Renderer, m_RenderTexture);
-		SDL_SetTextureScaleMode(m_RenderTexture, SDL_SCALEMODE_NEAREST);
-
-		if (m_ScreenCleared)
-		{
-			SDL_SetRenderDrawColor(m_Renderer, 0, 0, 0, 255);
-
-			for (int row = 0; row < m_Screen.size(); row++)
-			{
-				for (int col = 0; col < m_Screen[row].size(); col++)
-				{
-					SDL_RenderPoint(m_Renderer, col, row);
-				}
-			}
-		}
-
-		for (Pixel pixel : m_ChangedPixels)
-		{
-			if (m_Screen[pixel.y][pixel.x])
-			{
-				SDL_SetRenderDrawColor(m_Renderer, 255, 255, 255, 255);
-			}
-			else
-			{
-				SDL_SetRenderDrawColor(m_Renderer, 0, 0, 0, 255);
-			}
-			SDL_RenderPoint(m_Renderer, pixel.x, pixel.y);
-		}
-
-
-		SDL_SetRenderTarget(m_Renderer, NULL);
+		UpdateRenderTexture();
 	}
 
-	RenderImgui(pcInfo);
+	auto newRunningState = RenderImgui(pcInfo, emulatorState);
 
 	ImGui::Render();
 	ImGui_ImplSDLRenderer3_RenderDrawData(ImGui::GetDrawData(), m_Renderer);
 
 	SDL_RenderPresent(m_Renderer);
+
+	return newRunningState;
 }
 
 void Chip8::Renderer::Update()
@@ -184,11 +156,12 @@ void Chip8::Renderer::ClearScreen()
 	m_ScreenCleared = true;
 }
 
-void Chip8::Renderer::RenderImgui(Chip8::ProgramCounterInfo pcInfo) const
+Chip8::EmulatorStates Chip8::Renderer::RenderImgui(Chip8::ProgramCounterInfo pcInfo, Chip8::EmulatorStates emulatorState) const
 {
 	ImGui::PushFont(m_Font);
 	auto& timer = Chip8::TimeManager::GetInstance();
 	auto& input = Chip8::InputManager::GetInstance();
+	Chip8::EmulatorStates returnState{ emulatorState };
 
 	ImGuiIO& io = ImGui::GetIO();
 	if (io.ConfigFlags & ImGuiConfigFlags_DockingEnable) 
@@ -233,6 +206,14 @@ void Chip8::Renderer::RenderImgui(Chip8::ProgramCounterInfo pcInfo) const
 
 	ImGui::Begin("Memory", nullptr);
 		ImGuiTableFlags flags = ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg;
+		if (emulatorState == Chip8::EmulatorStates::Running and ImGui::Button("Pause"))
+		{
+			returnState = Chip8::EmulatorStates::Paused;
+		}
+		else if(emulatorState == Chip8::EmulatorStates::Paused and ImGui::Button("Resume"))
+		{
+			returnState = Chip8::EmulatorStates::Running;
+		}
 		if (ImGui::BeginTable("Memory", 3, flags))
 		{
 			ImGui::TableSetupColumn("PC");
@@ -280,5 +261,42 @@ void Chip8::Renderer::RenderImgui(Chip8::ProgramCounterInfo pcInfo) const
 	ImGui::End();
 
 	ImGui::PopFont();
+
+	return returnState;
+}
+
+void Chip8::Renderer::UpdateRenderTexture() const
+{
+	SDL_SetRenderTarget(m_Renderer, m_RenderTexture);
+	SDL_SetTextureScaleMode(m_RenderTexture, SDL_SCALEMODE_NEAREST);
+
+	if (m_ScreenCleared)
+	{
+		SDL_SetRenderDrawColor(m_Renderer, 0, 0, 0, 255);
+
+		for (int row = 0; row < m_Screen.size(); row++)
+		{
+			for (int col = 0; col < m_Screen[row].size(); col++)
+			{
+				SDL_RenderPoint(m_Renderer, col, row);
+			}
+		}
+	}
+
+	for (Pixel pixel : m_ChangedPixels)
+	{
+		if (m_Screen[pixel.y][pixel.x])
+		{
+			SDL_SetRenderDrawColor(m_Renderer, 255, 255, 255, 255);
+		}
+		else
+		{
+			SDL_SetRenderDrawColor(m_Renderer, 0, 0, 0, 255);
+		}
+		SDL_RenderPoint(m_Renderer, pixel.x, pixel.y);
+	}
+
+
+	SDL_SetRenderTarget(m_Renderer, NULL);
 }
 

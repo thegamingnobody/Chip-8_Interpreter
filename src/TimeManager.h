@@ -9,7 +9,7 @@ namespace Chip8
 	{
 	public:
 		void Init();
-		void UpdateTime();
+		void UpdateTime(bool isGamePaused);
 
 		bool ShouldUpdateTimers();
 

@@ -26,13 +26,13 @@ namespace Chip8
 
 		void EmulateCycle(bool updateTimers);
 
-		void UpdateRender(bool updateGame);
-
 		bool SetkeyStates();
 
 		void UpdateTimers();
 
 		void Reset();
+
+		Chip8::ProgramCounterInfo CreateProgramCounterInfo();
 	private:
 		//Reset functions
 		void ClearMemory();
@@ -60,7 +60,6 @@ namespace Chip8
 		bool Instruction_EXNN(opcode baseInstruction);
 		bool Instruction_FXNN(opcode baseInstruction);
 
-		Chip8::ProgramCounterInfo CreateProgramCounterInfo();
 
 		//Main memory
 		std::vector<byte> m_Memory;
