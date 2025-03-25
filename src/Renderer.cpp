@@ -185,7 +185,7 @@ Chip8::EmulatorStates Chip8::Renderer::RenderImgui(Chip8::ProgramCounterInfo pcI
 			ImGuiID dockspace_main_id = dockspace_id;
 			ImGuiID input_id = ImGui::DockBuilderSplitNode(dockspace_main_id, ImGuiDir_Right, 1.0f, nullptr, &dockspace_main_id);
 			ImGuiID performance_id = ImGui::DockBuilderSplitNode(dockspace_main_id, ImGuiDir_Down, 0.25f, nullptr, &dockspace_main_id);
-			ImGuiID memory_id = ImGui::DockBuilderSplitNode(input_id, ImGuiDir_Down, 0.5f, nullptr, &input_id);
+			ImGuiID memory_id = ImGui::DockBuilderSplitNode(input_id, ImGuiDir_Down, 0.75f, nullptr, &input_id);
 
 			ImGui::DockBuilderDockWindow("Viewport", dockspace_main_id);
 			ImGui::DockBuilderDockWindow("Performance", performance_id);
@@ -269,6 +269,15 @@ Chip8::EmulatorStates Chip8::Renderer::RenderImgui(Chip8::ProgramCounterInfo pcI
 				}
 			}
 			ImGui::EndTable();
+
+			//print register values
+			for (int i = 0; i < pcInfo.RegisterValues.size(); i++)
+			{
+				std::stringstream stream;
+				stream << "v" << std::uppercase << std::hex << i << ": " << std::setfill('0') << std::setw(2) << static_cast<int>(pcInfo.RegisterValues[i]);
+				ImGui::Text(stream.str().c_str());
+			}
+
 		}
 	ImGui::End();
 
