@@ -555,7 +555,7 @@ bool Chip8::Interpreter::Instruction_DXYN(opcode baseInstruction)
 
 	for (int row = 0; row < height; row++)
 	{
-		if (yCoordValue > renderer.GetViewportHeight()) continue;
+		if (yCoordValue >= renderer.GetViewportHeight()) continue;
 
 		xCoordValue = m_V[xIndex] % renderer.GetViewportWidth();
 
@@ -564,7 +564,7 @@ bool Chip8::Interpreter::Instruction_DXYN(opcode baseInstruction)
 
 		for (int pixel = 0; pixel < size; pixel++)
 		{
-			if (xCoordValue > renderer.GetViewportWidth()) continue;
+			if (xCoordValue >= renderer.GetViewportWidth()) continue;
 
 			if (spriteRow & (0x80 >> pixel))
 			{
@@ -717,6 +717,8 @@ Chip8::ProgramCounterInfo Chip8::Interpreter::CreateProgramCounterInfo()
 		opcode instruction = m_Memory[(m_PC + ((i - 2) * 2))] << 8 | m_Memory[(m_PC + ((i - 2) * 2)) + 1];
 		result.MemoryValuesAtPC.emplace_back(instruction);
 	}
+
+	result.RegisterValues = m_V;
 
 	return result;
 }

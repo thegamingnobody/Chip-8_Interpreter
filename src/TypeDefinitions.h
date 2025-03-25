@@ -12,6 +12,7 @@ namespace Chip8
 		opcode CurrentProgramCounter;
 		std::vector<opcode> MemoryValuesAtPC;
 		int const MemoryValuesSize{ 5 };
+		std::vector<byte> RegisterValues;
 	};
 
 	enum class EmulatorStates
