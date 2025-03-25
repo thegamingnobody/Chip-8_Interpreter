@@ -14,7 +14,7 @@ int main()
 	auto& renderer = Chip8::Renderer::GetInstance();
 
 	std::vector<std::string> gameNames{ "0-chip8-logo.ch8", "1-ibm-logo.ch8", "2-corax+.ch8", "3-flags.ch8", "4-quirks.ch8", "5-keypad.ch8", "test_opcode.ch8" };
-	int const gameIndex{ 5 };
+	int const gameIndex{ 3 };
 
 	interpreter.LoadGame(gameNames[gameIndex]);
 

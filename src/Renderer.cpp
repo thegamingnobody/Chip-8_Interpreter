@@ -288,15 +288,16 @@ void Chip8::Renderer::UpdateRenderTexture() const
 	{
 		if (m_Screen[pixel.y][pixel.x])
 		{
+			//Set color on
 			SDL_SetRenderDrawColor(m_Renderer, 255, 255, 255, 255);
 		}
 		else
 		{
+			//Set color off
 			SDL_SetRenderDrawColor(m_Renderer, 10, 10, 10, 255);
 		}
 		SDL_RenderPoint(m_Renderer, pixel.x, pixel.y);
 	}
-
 
 	SDL_SetRenderTarget(m_Renderer, NULL);
 }

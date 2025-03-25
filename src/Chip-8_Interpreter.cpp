@@ -397,7 +397,7 @@ bool Chip8::Interpreter::Instruction_8XYN(opcode baseInstruction)
 	//					  2) shift vX one bit to the right
 	//					  3) set vF to to the value of the bit that was shifted out
 	//			- 0x8XYE: 1) (configurable) vX is set to vY 
-	//					  2) shift vX one bit to the left
+	//					  2) shift vY one bit to the left
 	//					  3) set vF to to the value of the bit that was shifted out
 	byte registerXIndex = (baseInstruction & 0x0F00) >> 8;
 	byte registerYIndex = (baseInstruction & 0x00F0) >> 4;
@@ -426,17 +426,8 @@ bool Chip8::Interpreter::Instruction_8XYN(opcode baseInstruction)
 	case 0x4:
 		{	
 			opcode result = (XValue + YValue);
-			if ((result & 0xFF00) > 0)
-			{
-				m_V[0xF] = 0x01;
-			}
 			m_V[registerXIndex] = (result & 0x00FF);
-		}
-		break;
-	case 0x5:
-		{	
-			opcode result = (XValue - YValue);
-			if (XValue > YValue)
+			if ((result & 0xFF00))
 			{
 				m_V[0xF] = 0x01;
 			}
@@ -444,7 +435,20 @@ bool Chip8::Interpreter::Instruction_8XYN(opcode baseInstruction)
 			{
 				m_V[0xF] = 0x00;
 			}
+		}
+		break;
+	case 0x5:
+		{	
+			opcode result = (XValue - YValue);
 			m_V[registerXIndex] = (result & 0x00FF);
+			if (result & 0xFF00)
+			{
+				m_V[0xF] = 0x00;
+			}
+			else
+			{
+				m_V[0xF] = 0x01;
+			}
 		}
 		break;
 	case 0x6:
@@ -461,26 +465,26 @@ bool Chip8::Interpreter::Instruction_8XYN(opcode baseInstruction)
 	case 0x7:
 		{	
 			opcode result = (YValue - XValue);
-			if (XValue < YValue)
-			{
-				m_V[0xF] = 0x01;
-			}
-			else
+			m_V[registerXIndex] = (result & 0x00FF);
+			if (result & 0xFF00)
 			{
 				m_V[0xF] = 0x00;
 			}
-			m_V[registerXIndex] = (result & 0x00FF);
+			else
+			{
+				m_V[0xF] = 0x01;
+			}
 		}
 		break;
 	case 0xE:
 		{
-			//m_V[registerXIndex] = YValue;
-			byte lostBit = (XValue & 0x80);
+			byte lostBit = (YValue & 0x80);
+			m_V[registerXIndex] = YValue;
 
-			XValue = XValue << 1;
+			XValue = YValue << 1;
 			m_V[registerXIndex] = XValue;
 
-			m_V[0xF] = lostBit;
+			m_V[0xF] = lostBit >> 7;
 		}
 		break;
 	default:
