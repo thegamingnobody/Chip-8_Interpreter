@@ -60,6 +60,18 @@ bool Chip8::InputManager::IsKeyPressed(int key) const
 	return m_KeysState[key];
 }
 
+bool Chip8::InputManager::IsAnyKeyPressed() const
+{
+	for (auto key : m_KeysState)
+	{
+		if (key)
+		{
+			return true;
+		}
+	}
+	return false;
+}
+
 void Chip8::InputManager::RenderImGui(std::string windowName)
 {
 	ImGui::Begin(windowName.c_str());

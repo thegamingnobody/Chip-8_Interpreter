@@ -84,13 +84,18 @@ void Chip8::Interpreter::EmulateCycle()
 	auto& logger = Logger::GetInstance();
 	auto& renderer = Renderer::GetInstance();
 	auto& timer = TimeManager::GetInstance();
+	auto& inputManager = InputManager::GetInstance();
 
-	timer.IncrementCycleCounter();
+	if (inputManager.IsAnyKeyPressed())
+	{
+		m_WaitForInput = false;
+	}
 
 	//Fetch opcode
 	opcode instructionThisCycle = m_Memory[m_PC] << 8 | m_Memory[m_PC + 1];
 	if (not m_WaitForInput)
 	{
+		timer.IncrementCycleCounter();
 		m_PC += 2;
 	}
 
@@ -177,6 +182,7 @@ void Chip8::Interpreter::EmulateCycle()
 	}
 
 //Todo: look up how debug/release mode werkt in CMake 
+//Todo: make imgui window with failed instructions?
 #ifdef DEBUG
 	if (instructionExecuted and not(m_WaitForInput))
 	{
@@ -271,7 +277,7 @@ void Chip8::Interpreter::ResetTimers()
 
 bool Chip8::Interpreter::Instruction_0NNN(opcode baseInstruction)
 {
-	//Implement 0x00EE: Return from subroutine
+	//0x00EE: Return from subroutine
 	byte instructionParam = (baseInstruction & 0x00FF);
 
 	switch (instructionParam)
@@ -298,7 +304,6 @@ bool Chip8::Interpreter::Instruction_2NNN(opcode baseInstruction)
 {
 	//0x2NNN: Subroutine call. Jump to address NNN
 	opcode value = baseInstruction & 0xFFF;
-	//m_PC -= 2;
 
 	m_Stack.push(m_PC);
 
@@ -527,19 +532,31 @@ bool Chip8::Interpreter::Instruction_ANNN(opcode baseInstruction)
 }
 bool Chip8::Interpreter::Instruction_BNNN(opcode baseInstruction)
 {
+	opcode jumpValue = (baseInstruction & 0x0FFF);
+	byte xIndex = 0;
+	//byte xIndex = (baseInstruction & 0x0F00) >> 8;
+
+	byte registerValue = m_V[xIndex];
+	m_PC = jumpValue + registerValue;
 	//Todo: CONFIG
 	// 1) originally
 	//Todo: 	0xBNNN: jump to address (NNN + value in v0)
 	// 2) later on
 	//Todo:		0xBXNN: jump to address (XNN + value in vX)
-	return false;
+	return true;
 }
 bool Chip8::Interpreter::Instruction_CXNN(opcode baseInstruction)
 {
-	//Todo: 0xCXNN: 1) generate random number
+	//0xCXNN: 1) generate random number
 	//				2) binary AND random number with NN
 	//				3) store result of binary AND in vX
-	return false;
+	byte registerXIndex = (baseInstruction & 0x0F00) >> 8;
+	byte mask = (baseInstruction & 0x00FF);
+	byte randomNumber{ static_cast<byte>(std::rand() & 0xFF) };
+
+	byte result = randomNumber & mask;
+	m_V[registerXIndex] = result;
+	return true;
 }
 bool Chip8::Interpreter::Instruction_DXYN(opcode baseInstruction)
 {
@@ -585,8 +602,8 @@ bool Chip8::Interpreter::Instruction_DXYN(opcode baseInstruction)
 }
 bool Chip8::Interpreter::Instruction_EXNN(opcode baseInstruction)
 {
-	//Todo: 0xEX9E: skip next instruction if key corresponding to value in vX is pressed
-	//Todo: 0xEXA1: skip next instruction if key corresponding to value in vX is NOT pressed
+	//0xEX9E: skip next instruction if key corresponding to value in vX is pressed
+	//0xEXA1: skip next instruction if key corresponding to value in vX is NOT pressed
 	//valid key values: 0 - F
 	auto& inputManager = InputManager::GetInstance();
 
@@ -655,7 +672,8 @@ bool Chip8::Interpreter::Instruction_FXNN(opcode baseInstruction)
 		//	logger.Log("Waiting for input...\n");
 		//}
 		//
-		return false;
+		m_WaitForInput = true;
+		return true;
 		break;
 	case 0x29:
 		//0xFX29: set index register to address of character 

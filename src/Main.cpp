@@ -8,6 +8,8 @@
 
 int main()
 {
+	std::srand(time(NULL));
+
 	Chip8::Interpreter interpreter{};
 
 	auto& timer = Chip8::TimeManager::GetInstance();

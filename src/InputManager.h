@@ -14,6 +14,7 @@ namespace Chip8
 		bool ProcessInput();
 		
 		bool IsKeyPressed(int key) const;
+		bool IsAnyKeyPressed() const;
 
 		bool IsKeyPressedThisFrame() const { return m_KeyPressedThisFrame; }
 
