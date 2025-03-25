@@ -19,15 +19,14 @@ void Chip8::Renderer::Init(int windowWidth, int windowHeight, float windowScale)
 	m_ViewportHeightBase = 32;
 	m_ViewportScale = 8.0f;
 
-	m_ScreenCleared = false;
+	m_ScreenCleared = true;
 
 	if (SDL_Init(SDL_INIT_VIDEO) < 0)
 	{
 		throw std::runtime_error(std::string("SDL could not initialize! SDL_Error: ") + SDL_GetError());
 	}
 
-	//m_Window = SDL_CreateWindow("Window", windowWidth * windowScale, windowHeight * windowScale, SDL_WINDOW_RESIZABLE);
-	m_Window = SDL_CreateWindow("Window", m_WindowWidthBase * m_WindowScale, m_WindowHeightBase * m_WindowScale, SDL_WINDOW_RESIZABLE);
+	m_Window = SDL_CreateWindow("Window", m_WindowWidthBase * m_WindowScale, m_WindowHeightBase * m_WindowScale, NULL);
 	if (!m_Window)
 	{
 		throw std::runtime_error(std::string("SDL could not create window! SDL_Error: ") + SDL_GetError());
@@ -38,8 +37,6 @@ void Chip8::Renderer::Init(int windowWidth, int windowHeight, float windowScale)
 	{
 		throw std::runtime_error(std::string("SDL could not create renderer! SDL_Error: ") + SDL_GetError());
 	}
-
-	//SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "0");
 
 	m_RenderTexture = SDL_CreateTexture(m_Renderer, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_TARGET, m_ViewportWidthBase, m_ViewportHeightBase);
 
@@ -77,7 +74,7 @@ void Chip8::Renderer::Init(int windowWidth, int windowHeight, float windowScale)
 	ImGui::LoadIniSettingsFromMemory("");
 }
 
-Chip8::EmulatorStates Chip8::Renderer::Render(bool drawFlag, Chip8::ProgramCounterInfo pcInfo, Chip8::EmulatorStates emulatorState) const
+Chip8::EmulatorStates Chip8::Renderer::Render(Chip8::ProgramCounterInfo pcInfo, Chip8::EmulatorStates emulatorState) const
 {
 	//Todo: Implement selectable color palettes
 	SDL_SetRenderDrawColor(m_Renderer, 0, 0, 0, 255);
@@ -87,10 +84,7 @@ Chip8::EmulatorStates Chip8::Renderer::Render(bool drawFlag, Chip8::ProgramCount
 	ImGui_ImplSDL3_NewFrame();
 	ImGui::NewFrame();
 	
-	if (drawFlag)
-	{
-		UpdateRenderTexture();
-	}
+	UpdateRenderTexture();
 
 	auto newRunningState = RenderImgui(pcInfo, emulatorState);
 
@@ -113,6 +107,10 @@ void Chip8::Renderer::Update()
 		for (int row = 0; row < m_ViewportHeightBase; row++)
 		{
 			std::fill(m_Screen[row].begin(), m_Screen[row].end(), false);
+			for (int col = 0; col < m_ViewportWidthBase; col++)
+			{
+				m_ChangedPixels.emplace_back(col, row);
+			}
 		}
 		m_ScreenCleared = false;
 	}
@@ -229,6 +227,15 @@ Chip8::EmulatorStates Chip8::Renderer::RenderImgui(Chip8::ProgramCounterInfo pcI
 			for (int row = 0; row < 5; row++)
 			{
 				ImGui::TableNextRow();
+
+				//White text is default
+				ImVec4 textColor{ 1.0f, 1.0f, 1.0f, 1.0f };
+				//if ((pcInfo.MemoryValuesAtPC[row] & 0xF000) == 0xD000)
+				//{
+				//	//Instruction is a draw, color is red
+				//	textColor = ImVec4(0.85f, 0.3f, 0.3f, 1.0f);
+				//}
+
 				for (int column = 0; column < 3; column++)
 				{
 					ImGui::TableSetColumnIndex(column);
@@ -248,14 +255,14 @@ Chip8::EmulatorStates Chip8::Renderer::RenderImgui(Chip8::ProgramCounterInfo pcI
 						{
 							std::stringstream stream;
 							stream << "0x" << std::uppercase << std::hex << std::setfill('0') << std::setw(4) << pcInfo.CurrentProgramCounter + (2 * (row - 2));
-							ImGui::Text(stream.str().c_str());
+							ImGui::TextColored(textColor, stream.str().c_str());
 						}
 						break;
 					case 2:
 						{
 							std::stringstream stream;
 							stream << "0x" << std::uppercase << std::hex << std::setfill('0') << std::setw(4) << pcInfo.MemoryValuesAtPC[row];
-							ImGui::Text(stream.str().c_str());
+							ImGui::TextColored(textColor, stream.str().c_str());
 						}
 						break;
 					}
@@ -264,6 +271,8 @@ Chip8::EmulatorStates Chip8::Renderer::RenderImgui(Chip8::ProgramCounterInfo pcI
 			ImGui::EndTable();
 		}
 	ImGui::End();
+
+	//ImGui::ShowDemoWindow();
 
 	ImGui::PopFont();
 
@@ -275,19 +284,6 @@ void Chip8::Renderer::UpdateRenderTexture() const
 	SDL_SetRenderTarget(m_Renderer, m_RenderTexture);
 	SDL_SetTextureScaleMode(m_RenderTexture, SDL_SCALEMODE_NEAREST);
 
-	if (m_ScreenCleared)
-	{
-		SDL_SetRenderDrawColor(m_Renderer, 0, 0, 0, 255);
-
-		for (int row = 0; row < m_Screen.size(); row++)
-		{
-			for (int col = 0; col < m_Screen[row].size(); col++)
-			{
-				SDL_RenderPoint(m_Renderer, col, row);
-			}
-		}
-	}
-
 	for (Pixel pixel : m_ChangedPixels)
 	{
 		if (m_Screen[pixel.y][pixel.x])
@@ -296,7 +292,7 @@ void Chip8::Renderer::UpdateRenderTexture() const
 		}
 		else
 		{
-			SDL_SetRenderDrawColor(m_Renderer, 0, 0, 0, 255);
+			SDL_SetRenderDrawColor(m_Renderer, 10, 10, 10, 255);
 		}
 		SDL_RenderPoint(m_Renderer, pixel.x, pixel.y);
 	}

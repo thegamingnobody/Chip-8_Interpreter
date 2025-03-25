@@ -19,7 +19,6 @@ namespace Chip8
 
 		void RenderImGui(std::string windowName);
 	private:
-		//void CheckKeys();
 		void SetKey(int key, bool newState);
 
 		std::vector<bool> m_KeysState;

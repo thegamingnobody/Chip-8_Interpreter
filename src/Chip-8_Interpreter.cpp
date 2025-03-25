@@ -79,7 +79,7 @@ void Chip8::Interpreter::LoadGame(const std::string& gameName)
 	Logger::GetInstance().Log("Game loaded successfully");
 }
 
-void Chip8::Interpreter::EmulateCycle(bool updateTimers)
+void Chip8::Interpreter::EmulateCycle()
 {
 	auto& logger = Logger::GetInstance();
 	auto& renderer = Renderer::GetInstance();
@@ -189,12 +189,6 @@ void Chip8::Interpreter::EmulateCycle(bool updateTimers)
 		logger.Log("[ERROR] instruction failed:", instructionThisCycle);
 	}
 #endif // DEBUG
-
-	//Update timers
-	if (updateTimers)
-	{
-		UpdateTimers();
-	}
 }
 
 bool Chip8::Interpreter::SetkeyStates()

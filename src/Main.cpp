@@ -11,6 +11,7 @@ int main()
 	Chip8::Interpreter interpreter{};
 
 	auto& timer = Chip8::TimeManager::GetInstance();
+	auto& renderer = Chip8::Renderer::GetInstance();
 
 	std::vector<std::string> gameNames{ "0-chip8-logo.ch8", "1-ibm-logo.ch8", "2-corax+.ch8", "3-flags.ch8", "4-quirks.ch8", "5-keypad.ch8", "test_opcode.ch8" };
 	int const gameIndex{ 5 };
@@ -19,7 +20,8 @@ int main()
 
 	int instructionsPerCycle{ timer.GetInstructionPerFrame() };
 	bool continueRunning{ true };
-	Chip8::EmulatorStates emulatorState{ Chip8::EmulatorStates::Paused };
+	//Chip8::EmulatorStates emulatorState{ Chip8::EmulatorStates::Paused };
+	Chip8::EmulatorStates emulatorState{ Chip8::EmulatorStates::Running };
 	while (continueRunning)
 	{
 		timer.UpdateTime((emulatorState == Chip8::EmulatorStates::Paused));
@@ -32,7 +34,11 @@ int main()
 		case Chip8::EmulatorStates::Running:
 			for (int i = 0; i < instructionsPerCycle; i++)
 			{
-				interpreter.EmulateCycle(shouldUpdateGame);
+				interpreter.EmulateCycle();
+				if (shouldUpdateGame)
+				{
+					interpreter.UpdateTimers();
+				}
 			}
 			break;
 		case Chip8::EmulatorStates::Paused:
@@ -40,7 +46,11 @@ int main()
 			shouldUpdateGame = false;
 			break;
 		case Chip8::EmulatorStates::Step:
-			interpreter.EmulateCycle(shouldUpdateGame);
+			interpreter.EmulateCycle();
+			if (shouldUpdateGame)
+			{
+				interpreter.UpdateTimers();
+			}
 			emulatorState = Chip8::EmulatorStates::Paused;
 			break;
 		}
@@ -48,8 +58,8 @@ int main()
 		auto pcInfo = interpreter.CreateProgramCounterInfo();
 		//Imgui handling is currently done in the Renderer render function, not sure how to split this
 		//Todo: find way to improve this
-		emulatorState = Chip8::Renderer::GetInstance().Render(shouldUpdateGame, pcInfo, emulatorState);
-		Chip8::Renderer::GetInstance().Update();
+		emulatorState = renderer.Render(pcInfo, emulatorState);
+		renderer.Update();
 
 		//Todo: Allow faster emulation
 		auto sleepTime{ timer.GetSleepTime() };

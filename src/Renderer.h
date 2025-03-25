@@ -20,7 +20,7 @@ namespace Chip8
 	{
 	public:
 		void Init(int windowWidth, int windowHeight, float windowScale = 1.0f);
-		Chip8::EmulatorStates Render(bool drawFlag, Chip8::ProgramCounterInfo pcInfo, Chip8::EmulatorStates emulatorState) const;
+		Chip8::EmulatorStates Render(Chip8::ProgramCounterInfo pcInfo, Chip8::EmulatorStates emulatorState) const;
 		void Update();
 		void Destroy();
 
