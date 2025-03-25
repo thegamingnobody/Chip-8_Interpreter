@@ -19,7 +19,7 @@ int main()
 
 	int instructionsPerCycle{ timer.GetInstructionPerFrame() };
 	bool continueRunning{ true };
-	Chip8::EmulatorStates emulatorState{ Chip8::EmulatorStates::Running };
+	Chip8::EmulatorStates emulatorState{ Chip8::EmulatorStates::Paused };
 	while (continueRunning)
 	{
 		timer.UpdateTime((emulatorState == Chip8::EmulatorStates::Paused));

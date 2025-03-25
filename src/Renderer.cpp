@@ -214,6 +214,7 @@ Chip8::EmulatorStates Chip8::Renderer::RenderImgui(Chip8::ProgramCounterInfo pcI
 		{
 			returnState = Chip8::EmulatorStates::Running;
 		}
+		ImGui::SameLine();
 		if (ImGui::Button("Step"))
 		{
 			returnState = Chip8::EmulatorStates::Step;
@@ -246,14 +247,14 @@ Chip8::EmulatorStates Chip8::Renderer::RenderImgui(Chip8::ProgramCounterInfo pcI
 					case 1:
 						{
 							std::stringstream stream;
-							stream << "0x" << std::hex << pcInfo.CurrentProgramCounter + (2 * (row - 2));
+							stream << "0x" << std::uppercase << std::hex << std::setfill('0') << std::setw(4) << pcInfo.CurrentProgramCounter + (2 * (row - 2));
 							ImGui::Text(stream.str().c_str());
 						}
 						break;
 					case 2:
 						{
 							std::stringstream stream;
-							stream << "0x" << std::hex << pcInfo.MemoryValuesAtPC[row];
+							stream << "0x" << std::uppercase << std::hex << std::setfill('0') << std::setw(4) << pcInfo.MemoryValuesAtPC[row];
 							ImGui::Text(stream.str().c_str());
 						}
 						break;
