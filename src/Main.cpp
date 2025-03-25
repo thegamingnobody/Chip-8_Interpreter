@@ -39,6 +39,10 @@ int main()
 			//We want to handle/update imgui, but not the game itself
 			shouldUpdateGame = false;
 			break;
+		case Chip8::EmulatorStates::Step:
+			interpreter.EmulateCycle(shouldUpdateGame);
+			emulatorState = Chip8::EmulatorStates::Paused;
+			break;
 		}
 
 		auto pcInfo = interpreter.CreateProgramCounterInfo();

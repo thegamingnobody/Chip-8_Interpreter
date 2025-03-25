@@ -214,6 +214,10 @@ Chip8::EmulatorStates Chip8::Renderer::RenderImgui(Chip8::ProgramCounterInfo pcI
 		{
 			returnState = Chip8::EmulatorStates::Running;
 		}
+		if (ImGui::Button("Step"))
+		{
+			returnState = Chip8::EmulatorStates::Step;
+		}
 		if (ImGui::BeginTable("Memory", 3, flags))
 		{
 			ImGui::TableSetupColumn("PC");

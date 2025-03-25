@@ -17,6 +17,7 @@ namespace Chip8
 	enum class EmulatorStates
 	{
 		Running,
-		Paused
+		Paused,
+		Step
 	};
 }
