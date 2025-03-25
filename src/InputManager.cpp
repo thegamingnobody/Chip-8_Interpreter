@@ -4,6 +4,8 @@
 #include <SDL3/SDL_keyboard.h>
 #include <backends/imgui_impl_sdl3.h>
 #include <iostream>
+#include <sstream>
+#include <iomanip>
 
 void Chip8::InputManager::Init()
 {
@@ -153,8 +155,9 @@ void Chip8::InputManager::RenderImGui(std::string windowName)
 				ImGui::TableSetColumnIndex(column);
 				byte buttonID = keysOrder[column + (row * 4)];
 
-				std::string text{ std::to_string(buttonID) + ": " + std::to_string(m_KeysState[buttonID]) };
-				ImGui::Text(text.c_str());
+				std::stringstream stream;
+				stream << std::uppercase << std::hex << static_cast<int>(buttonID) << ": " << m_KeysState[buttonID];
+				ImGui::Text(stream.str().c_str());
 			}
 		}
 		ImGui::EndTable();
