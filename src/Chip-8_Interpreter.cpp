@@ -219,6 +219,8 @@ Chip8::EmulatorStates Chip8::Interpreter::RenderImgui(std::string windowName, Em
 				//	textColor = ImVec4(0.85f, 0.3f, 0.3f, 1.0f);
 				//}
 
+				int relativeIndex{ (2 * (row - 2)) };
+				opcode memoryValue = m_Memory[m_PC + relativeIndex] << 8 | m_Memory[m_PC + relativeIndex + 1];
 				for (int column = 0; column < 3; column++)
 				{
 					ImGui::TableSetColumnIndex(column);
@@ -237,14 +239,14 @@ Chip8::EmulatorStates Chip8::Interpreter::RenderImgui(std::string windowName, Em
 					case 1:
 					{
 						std::stringstream stream;
-						stream << "0x" << std::uppercase << std::hex << std::setfill('0') << std::setw(4) << m_PC + (2 * (row - 2));
+						stream << "0x" << std::uppercase << std::hex << std::setfill('0') << std::setw(4) << m_PC + relativeIndex;
 						ImGui::TextColored(textColor, stream.str().c_str());
 					}
 					break;
 					case 2:
 					{
 						std::stringstream stream;
-						stream << "0x" << std::uppercase << std::hex << std::setfill('0') << std::setw(4) << m_Memory[(m_PC + ((row - 2) * 2))];
+						stream << "0x" << std::uppercase << std::hex << std::setfill('0') << std::setw(4) << memoryValue;
 						ImGui::TextColored(textColor, stream.str().c_str());
 					}
 					break;
@@ -737,6 +739,8 @@ bool Chip8::Interpreter::Instruction_FXNN(opcode baseInstruction)
 				if (inputManager.IsKeyPressed(key))
 				{
 					m_V[registerXIndex] = static_cast<byte>(key & 0xFF);
+					m_PC += 2;
+					return true;
 				}
 			}
 		}

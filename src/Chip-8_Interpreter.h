@@ -25,6 +25,8 @@ namespace Chip8
 		void Reset();
 
 		Chip8::EmulatorStates RenderImgui(std::string windowName, EmulatorStates emulatorState) const;
+
+		bool IsWaitingForInput() const { return m_WaitForInput; }
 	private:
 		//Reset functions
 		void ClearMemory();

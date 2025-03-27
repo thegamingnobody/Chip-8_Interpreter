@@ -6,6 +6,7 @@
 #include <iostream>
 #include <sstream>
 #include <iomanip>
+#include "Chip-8_Interpreter.h"
 
 void Chip8::InputManager::Init()
 {
@@ -76,27 +77,44 @@ void Chip8::InputManager::RenderImGui(std::string windowName)
 {
 	ImGui::Begin(windowName.c_str());
 
-	std::vector<byte> keysOrder = { 0x1, 0x2, 0x3, 0xC, 0x4, 0x5, 0x6, 0xD, 0x7, 0x8, 0x9, 0xE, 0xA, 0x0, 0xB, 0xF };
+		std::vector<byte> keysOrder = { 0x1, 0x2, 0x3, 0xC, 0x4, 0x5, 0x6, 0xD, 0x7, 0x8, 0x9, 0xE, 0xA, 0x0, 0xB, 0xF };
 
-	ImGuiTableFlags flags = ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg;
-	if (ImGui::BeginTable("buttons pressed", 4, flags))
-	{
-		for (int row = 0; row < 4; row++)
+		ImGuiTableFlags flags = ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg;
+		if (ImGui::BeginTable("buttons pressed", 4, flags))
 		{
-			ImGui::TableNextRow();
-			for (int column = 0; column < 4; column++)
+			for (int row = 0; row < 4; row++)
 			{
-				ImGui::TableSetColumnIndex(column);
-				byte buttonID = keysOrder[column + (row * 4)];
+				ImGui::TableNextRow();
+				for (int column = 0; column < 4; column++)
+				{
+					ImGui::TableSetColumnIndex(column);
+					byte buttonID = keysOrder[column + (row * 4)];
 
-				std::stringstream stream;
-				stream << std::uppercase << std::hex << static_cast<int>(buttonID) << ": " << m_KeysState[buttonID];
-				ImGui::Text(stream.str().c_str());
+					std::stringstream stream;
+					stream << std::uppercase << std::hex << static_cast<int>(buttonID) << ": " << m_KeysState[buttonID];
+					ImGui::Text(stream.str().c_str());
+				}
 			}
+			ImGui::EndTable();
 		}
-		ImGui::EndTable();
-	}
+
+		if (Chip8::Interpreter::GetInstance().IsWaitingForInput())
+		{
+			ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.85f, 0.3f, 0.3f, 1.0f));
+			ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.85f, 0.3f, 0.3f, 1.0f));
+			ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(0.85f, 0.3f, 0.3f, 1.0f));
+			ImGui::Button("Waiting for Input...");
+		}
+		else
+		{
+			ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.3f, 0.85f, 0.3f, 1.0f));
+			ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.3f, 0.85f, 0.3f, 1.0f));
+			ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(0.3f, 0.85f, 0.3f, 1.0f));
+			ImGui::Button("Running");
+		}
+		ImGui::PopStyleColor(3);
 	ImGui::End();
+
 }
 
 void Chip8::InputManager::SetKey(int key, bool newState)
