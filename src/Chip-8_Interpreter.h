@@ -1,8 +1,6 @@
-﻿// Chip-8_Interpreter.h : Include file for standard system include files,
-// or project specific include files.
+﻿#pragma once
 
-#pragma once
-
+#include "Singleton.h"
 #include "TypeDefinitions.h"
 #include <vector>
 #include <string>
@@ -10,18 +8,12 @@
 
 namespace Chip8
 {
-	class Interpreter
+	class Interpreter : public Singleton<Interpreter>
 	{
 	public:
-		explicit Interpreter();
-		~Interpreter();
-		//void Run();
+		void Init();
+		void Destroy();
 
-		Interpreter(const Interpreter& other) = delete;
-		Interpreter(Interpreter&& other) = delete;
-		Interpreter& operator=(const Interpreter& other) = delete;
-		Interpreter& operator=(Interpreter&& other) = delete;
-		
 		void LoadGame(const std::string& gameName);
 
 		void EmulateCycle();
@@ -62,27 +54,27 @@ namespace Chip8
 
 
 		//Main memory
-		std::vector<byte> m_Memory;
+		std::vector<byte> m_Memory{};
 
 		//Registers
-		std::vector<byte> m_V;
+		std::vector<byte> m_V{};
 
 		//Stack 
-		std::stack<opcode> m_Stack;
+		std::stack<opcode> m_Stack{};
 
 		//Index register
-		opcode m_I;
+		opcode m_I{};
 
 		//Program counter
-		opcode m_PC;
+		opcode m_PC{ PROGRAM_COUNTER_START };
 
 		//Timers & Stack Pointer
-		byte m_DelayTimer;
-		byte m_SoundTimer;
-		byte m_SP;
+		byte m_DelayTimer{};
+		byte m_SoundTimer{};
+		byte m_SP{};
 
-		bool m_DrawFlag;
-		bool m_WaitForInput;
+		bool m_DrawFlag{ true };
+		bool m_WaitForInput{ false };
 	};
 
 }

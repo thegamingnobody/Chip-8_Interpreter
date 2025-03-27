@@ -19,12 +19,14 @@ namespace Chip8
 		bool IsKeyPressedThisFrame() const { return m_KeyPressedThisFrame; }
 
 		void RenderImGui(std::string windowName);
+
+		int GetNumberOfKeys() const { return m_Keymap.size(); }
 	private:
 		void SetKey(int key, bool newState);
 
 		std::vector<bool> m_KeysState;
 		std::vector<byte> m_Keymap;
 
-		bool m_KeyPressedThisFrame;
+		bool m_KeyPressedThisFrame{};
 	};
 }

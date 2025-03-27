@@ -67,6 +67,8 @@ void Chip8::TimeManager::RenderImGui(std::string windowName)
 
 	std::string text{ "Instructions/s: " + std::to_string(GetInstructionsPerSecond()) };
 	ImGui::Text(text.c_str());
+	text = ("Instruction count: " + std::to_string(m_CyclesExecuted));
+	ImGui::Text(text.c_str());
 
 	ImGui::End();
 }

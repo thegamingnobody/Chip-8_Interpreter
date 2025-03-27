@@ -18,7 +18,7 @@ namespace Chip8
 		void SetHexMode() { m_HexMode = true; }
 		void SetDecMode() { m_HexMode = false; }
 	private:
-		bool m_IsEnabled;
-		bool m_HexMode;
+		bool m_IsEnabled = false;
+		bool m_HexMode = true;
 	};
 }

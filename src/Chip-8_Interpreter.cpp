@@ -11,42 +11,15 @@
 #include "Logger.h"
 #include "TimeManager.h"
 
-#define FONTSET_ADDRESS 0x50
-#define CHARACTER_HEIGHT 5
-
-Chip8::Interpreter::Interpreter()
-	: m_Memory()
-	, m_V()
-	, m_Stack()
-	, m_I(0)
-	, m_PC(0x0200)
-	, m_DelayTimer()
-	, m_SoundTimer()
-	, m_SP()
-	, m_DrawFlag(true)
-	, m_WaitForInput(false)
+void Chip8::Interpreter::Init()
 {
 	//Resize memory to 4KB and initialize registers
-	m_Memory.resize(4096);
-	m_V.resize(16);
-
-
-	//Initialize Singletons
-	int const windowWidth{ 640 };
-	int const windowHeight{ 480 };
-	//Todo: consider: Read in from config file?
-	float windowScale{ 2.0f };
-
-	Renderer::GetInstance().Init(windowWidth, windowHeight, windowScale);
-	InputManager::GetInstance().Init();
-
-	Logger::GetInstance().Init(false);
-	TimeManager::GetInstance().Init();
+	m_Memory.resize(MEMORY_SIZE);
+	m_V.resize(NR_OF_REGISTERS);
 
 	Reset();
 }
-
-Chip8::Interpreter::~Interpreter()
+void Chip8::Interpreter::Destroy()
 {
 	Renderer::GetInstance().Destroy();
 	SDL_Quit();
@@ -84,12 +57,6 @@ void Chip8::Interpreter::EmulateCycle()
 	auto& logger = Logger::GetInstance();
 	auto& renderer = Renderer::GetInstance();
 	auto& timer = TimeManager::GetInstance();
-	auto& inputManager = InputManager::GetInstance();
-
-	if (inputManager.IsAnyKeyPressed())
-	{
-		m_WaitForInput = false;
-	}
 
 	//Fetch opcode
 	opcode instructionThisCycle = m_Memory[m_PC] << 8 | m_Memory[m_PC + 1];
@@ -223,17 +190,15 @@ void Chip8::Interpreter::Reset()
 	LoadFontset();
 	ResetTimers();
 
-	m_PC = 0x0200;
+	m_PC = PROGRAM_COUNTER_START;
 	m_I = 0;
 }
-
 void Chip8::Interpreter::ClearMemory()
 {
 	std::fill(m_Memory.begin(), m_Memory.end(), 0);
 }
 void Chip8::Interpreter::ClearStack()
 {
-	//std::fill(m_Stack.begin(), m_Stack.end(), 0);
 	m_Stack = std::stack<opcode>();
 	m_SP = 0;
 }
@@ -637,6 +602,7 @@ bool Chip8::Interpreter::Instruction_EXNN(opcode baseInstruction)
 bool Chip8::Interpreter::Instruction_FXNN(opcode baseInstruction)
 {
 	auto& logger = Logger::GetInstance();
+	auto& inputManager = InputManager::GetInstance();
 
 	byte registerXIndex = (baseInstruction & 0x0F00) >> 8;
 	byte subInstruction = (baseInstruction & 0x00FF);
@@ -664,16 +630,30 @@ bool Chip8::Interpreter::Instruction_FXNN(opcode baseInstruction)
 		m_I += XValue;
 		break;
 	case 0x0A:
-		////Todo: 0xFX0A: stops instruction execution untill a key is pressed. Decrement PC unless a key is pressed. delay and sound timers should still decrease. When key is pressed, its value is placed in vX and executions continues
-		////				on OG machine, key is registered upon release of key
-		//if (not m_WaitForInput)
-		//{
-		//	m_WaitForInput = true;
-		//	logger.Log("Waiting for input...\n");
-		//}
-		//
-		m_WaitForInput = true;
-		return true;
+		//0xFX0A: stops instruction execution untill a key is pressed. Decrement PC unless a key is pressed. delay and sound timers should still decrease. When key is pressed, its value is placed in vX and executions continues
+		//			on OG machine, key is registered upon release of key
+		
+		//Check if already in wating mode
+		if (not m_WaitForInput)
+		{
+			m_PC -= 2;
+			m_WaitForInput = true;
+			return true;
+		}
+		
+		//Check if any key is being pressed
+		if (inputManager.IsAnyKeyPressed())
+		{
+			m_WaitForInput = false;
+			for (int key = 0; key < inputManager.GetNumberOfKeys(); key++)
+			{
+				//set value of pressed key in vX
+				if (inputManager.IsKeyPressed(key))
+				{
+					m_V[registerXIndex] = static_cast<byte>(key & 0xFF);
+				}
+			}
+		}
 		break;
 	case 0x29:
 		//0xFX29: set index register to address of character 

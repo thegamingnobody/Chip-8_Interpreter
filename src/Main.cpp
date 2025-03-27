@@ -5,15 +5,29 @@
 #include <thread>
 #include <iostream>
 #include "TimeManager.h"
+#include "Logger.h"
 
 int main()
 {
 	std::srand(time(NULL));
 
-	Chip8::Interpreter interpreter{};
+	//Chip8::Interpreter interpreter{};
 
 	auto& timer = Chip8::TimeManager::GetInstance();
 	auto& renderer = Chip8::Renderer::GetInstance();
+	auto& interpreter = Chip8::Interpreter::GetInstance();
+	auto& inputManager = Chip8::InputManager::GetInstance();
+
+	//Todo: consider: Read in from config file?
+	float windowScale{ 2.0f };
+
+	interpreter.Init();
+	renderer.Init(WINDOW_WIDTH_BASE, WINDOW_HEIGHT_BASE, windowScale);
+	inputManager.Init();
+
+	//Todo: remove logger class or refactor to use imgui
+	Chip8::Logger::GetInstance().Init(false);
+	timer.Init();
 
 	std::vector<std::string> gameNames{ "0-chip8-logo.ch8", "1-ibm-logo.ch8", "2-corax+.ch8", "3-flags.ch8", "4-quirks.ch8", "5-keypad.ch8", "test_opcode.ch8" };
 	int const gameIndex{ 4 };
@@ -67,6 +81,8 @@ int main()
 		auto sleepTime{ timer.GetSleepTime() };
 		std::this_thread::sleep_for(sleepTime);
 	}
+
+	interpreter.Destroy();
 
 	return 0;
 }
