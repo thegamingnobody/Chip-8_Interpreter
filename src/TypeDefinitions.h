@@ -14,15 +14,6 @@ using byte = unsigned char;
 
 namespace Chip8
 {
-	//Todo: consider: find better solution
-	struct ProgramCounterInfo
-	{
-		opcode CurrentProgramCounter{};
-		std::vector<opcode> MemoryValuesAtPC{};
-		int const MemoryValuesSize{ 5 };
-		std::vector<byte> RegisterValues{};
-	};
-
 	enum class EmulatorStates
 	{
 		Running,

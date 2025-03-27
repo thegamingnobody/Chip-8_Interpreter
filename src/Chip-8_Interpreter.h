@@ -24,7 +24,7 @@ namespace Chip8
 
 		void Reset();
 
-		Chip8::ProgramCounterInfo CreateProgramCounterInfo();
+		Chip8::EmulatorStates RenderImgui(std::string windowName, EmulatorStates emulatorState) const;
 	private:
 		//Reset functions
 		void ClearMemory();

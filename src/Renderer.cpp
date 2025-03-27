@@ -8,6 +8,7 @@
 #include "TimeManager.h"
 #include "InputManager.h"
 #include <imgui_internal.h>
+#include <Chip-8_Interpreter.h>
 
 void Chip8::Renderer::Init(int windowWidth, int windowHeight, float windowScale)
 {
@@ -74,7 +75,7 @@ void Chip8::Renderer::Init(int windowWidth, int windowHeight, float windowScale)
 	ImGui::LoadIniSettingsFromMemory("");
 }
 
-Chip8::EmulatorStates Chip8::Renderer::Render(Chip8::ProgramCounterInfo pcInfo, Chip8::EmulatorStates emulatorState) const
+Chip8::EmulatorStates Chip8::Renderer::Render(Chip8::EmulatorStates emulatorState) const
 {
 	//Todo: Implement selectable color palettes
 	SDL_SetRenderDrawColor(m_Renderer, 0, 0, 0, 255);
@@ -86,7 +87,7 @@ Chip8::EmulatorStates Chip8::Renderer::Render(Chip8::ProgramCounterInfo pcInfo, 
 	
 	UpdateRenderTexture();
 
-	auto newRunningState = RenderImgui(pcInfo, emulatorState);
+	auto newRunningState = RenderImgui(emulatorState);
 
 	ImGui::Render();
 	ImGui_ImplSDLRenderer3_RenderDrawData(ImGui::GetDrawData(), m_Renderer);
@@ -154,11 +155,12 @@ void Chip8::Renderer::ClearScreen()
 	m_ScreenCleared = true;
 }
 
-Chip8::EmulatorStates Chip8::Renderer::RenderImgui(Chip8::ProgramCounterInfo pcInfo, Chip8::EmulatorStates emulatorState) const
+Chip8::EmulatorStates Chip8::Renderer::RenderImgui(Chip8::EmulatorStates emulatorState) const
 {
 	ImGui::PushFont(m_Font);
 	auto& timer = Chip8::TimeManager::GetInstance();
 	auto& input = Chip8::InputManager::GetInstance();
+	auto& interpreter = Chip8::Interpreter::GetInstance();
 	Chip8::EmulatorStates returnState{ emulatorState };
 
 	ImGuiIO& io = ImGui::GetIO();
@@ -201,85 +203,7 @@ Chip8::EmulatorStates Chip8::Renderer::RenderImgui(Chip8::ProgramCounterInfo pcI
 
 	timer.RenderImGui("Performance");
 	input.RenderImGui("Input");
-
-	ImGui::Begin("Memory", nullptr);
-		ImGuiTableFlags flags = ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg;
-		if (emulatorState == Chip8::EmulatorStates::Running and ImGui::Button("Pause"))
-		{
-			returnState = Chip8::EmulatorStates::Paused;
-		}
-		else if(emulatorState == Chip8::EmulatorStates::Paused and ImGui::Button("Resume"))
-		{
-			returnState = Chip8::EmulatorStates::Running;
-		}
-		ImGui::SameLine();
-		if (ImGui::Button("Step"))
-		{
-			returnState = Chip8::EmulatorStates::Step;
-		}
-		if (ImGui::BeginTable("Memory", 3, flags))
-		{
-			ImGui::TableSetupColumn("PC");
-			ImGui::TableSetupColumn("Address");
-			ImGui::TableSetupColumn("Value");
-			ImGui::TableHeadersRow();
-
-			for (int row = 0; row < 5; row++)
-			{
-				ImGui::TableNextRow();
-
-				//White text is default
-				ImVec4 textColor{ 1.0f, 1.0f, 1.0f, 1.0f };
-				//if ((pcInfo.MemoryValuesAtPC[row] & 0xF000) == 0xD000)
-				//{
-				//	//Instruction is a draw, color is red
-				//	textColor = ImVec4(0.85f, 0.3f, 0.3f, 1.0f);
-				//}
-
-				for (int column = 0; column < 3; column++)
-				{
-					ImGui::TableSetColumnIndex(column);
-					switch (column)
-					{
-					case 0:
-						if (row == 2)
-						{
-							ImGui::Text("=>");
-						}
-						else
-						{
-							ImGui::Text("  ");
-						}
-						break;
-					case 1:
-						{
-							std::stringstream stream;
-							stream << "0x" << std::uppercase << std::hex << std::setfill('0') << std::setw(4) << pcInfo.CurrentProgramCounter + (2 * (row - 2));
-							ImGui::TextColored(textColor, stream.str().c_str());
-						}
-						break;
-					case 2:
-						{
-							std::stringstream stream;
-							stream << "0x" << std::uppercase << std::hex << std::setfill('0') << std::setw(4) << pcInfo.MemoryValuesAtPC[row];
-							ImGui::TextColored(textColor, stream.str().c_str());
-						}
-						break;
-					}
-				}
-			}
-			ImGui::EndTable();
-
-			//print register values
-			for (int i = 0; i < pcInfo.RegisterValues.size(); i++)
-			{
-				std::stringstream stream;
-				stream << "v" << std::uppercase << std::hex << i << ": " << std::setfill('0') << std::setw(2) << static_cast<int>(pcInfo.RegisterValues[i]);
-				ImGui::Text(stream.str().c_str());
-			}
-
-		}
-	ImGui::End();
+	returnState = interpreter.RenderImgui("Memory", returnState);
 
 	//ImGui::ShowDemoWindow();
 

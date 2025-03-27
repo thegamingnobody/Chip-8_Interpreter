@@ -181,6 +181,92 @@ void Chip8::Interpreter::UpdateTimers()
 	}
 }
 
+Chip8::EmulatorStates Chip8::Interpreter::RenderImgui(std::string windowName, EmulatorStates emulatorState) const
+{
+	Chip8::EmulatorStates returnState{ emulatorState };
+
+	ImGui::Begin(windowName.c_str(), nullptr);
+		ImGuiTableFlags flags = ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg;
+		if (emulatorState == Chip8::EmulatorStates::Running and ImGui::Button("Pause"))
+		{
+			returnState = Chip8::EmulatorStates::Paused;
+		}
+		else if (emulatorState == Chip8::EmulatorStates::Paused and ImGui::Button("Resume"))
+		{
+			returnState = Chip8::EmulatorStates::Running;
+		}
+		ImGui::SameLine();
+		if (ImGui::Button("Step"))
+		{
+			returnState = Chip8::EmulatorStates::Step;
+		}
+		if (ImGui::BeginTable("Memory", 3, flags))
+		{
+			ImGui::TableSetupColumn("PC");
+			ImGui::TableSetupColumn("Address");
+			ImGui::TableSetupColumn("Value");
+			ImGui::TableHeadersRow();
+
+			for (int row = 0; row < 5; row++)
+			{
+				ImGui::TableNextRow();
+
+				//White text is default
+				ImVec4 textColor{ 1.0f, 1.0f, 1.0f, 1.0f };
+				//if ((pcInfo.MemoryValuesAtPC[row] & 0xF000) == 0xD000)
+				//{
+				//	//Instruction is a draw, color is red
+				//	textColor = ImVec4(0.85f, 0.3f, 0.3f, 1.0f);
+				//}
+
+				for (int column = 0; column < 3; column++)
+				{
+					ImGui::TableSetColumnIndex(column);
+					switch (column)
+					{
+					case 0:
+						if (row == 2)
+						{
+							ImGui::Text("=>");
+						}
+						else
+						{
+							ImGui::Text("  ");
+						}
+						break;
+					case 1:
+					{
+						std::stringstream stream;
+						stream << "0x" << std::uppercase << std::hex << std::setfill('0') << std::setw(4) << m_PC + (2 * (row - 2));
+						ImGui::TextColored(textColor, stream.str().c_str());
+					}
+					break;
+					case 2:
+					{
+						std::stringstream stream;
+						stream << "0x" << std::uppercase << std::hex << std::setfill('0') << std::setw(4) << m_Memory[(m_PC + ((row - 2) * 2))];
+						ImGui::TextColored(textColor, stream.str().c_str());
+					}
+					break;
+					}
+				}
+			}
+			ImGui::EndTable();
+
+			//print register values
+			for (int i = 0; i < m_V.size(); i++)
+			{
+				std::stringstream stream;
+				stream << "v" << std::uppercase << std::hex << i << ": " << std::setfill('0') << std::setw(2) << static_cast<int>(m_V[i]);
+				ImGui::Text(stream.str().c_str());
+			}
+
+		}
+	ImGui::End();
+	
+	return returnState;
+}
+
 void Chip8::Interpreter::Reset()
 {
 	Renderer::GetInstance().ClearScreen();
@@ -702,21 +788,4 @@ bool Chip8::Interpreter::Instruction_FXNN(opcode baseInstruction)
 	}
 
 	return true;
-}
-
-Chip8::ProgramCounterInfo Chip8::Interpreter::CreateProgramCounterInfo()
-{
-	Chip8::ProgramCounterInfo result;
-
-	result.CurrentProgramCounter = m_PC;
-
-	for (int i = 0; i < result.MemoryValuesSize; i++)
-	{
-		opcode instruction = m_Memory[(m_PC + ((i - 2) * 2))] << 8 | m_Memory[(m_PC + ((i - 2) * 2)) + 1];
-		result.MemoryValuesAtPC.emplace_back(instruction);
-	}
-
-	result.RegisterValues = m_V;
-
-	return result;
 }
