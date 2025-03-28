@@ -7,7 +7,7 @@
 #include "TimeManager.h"
 #include "Logger.h"
 
-#define GAME_INDEX 4
+#define GAME_INDEX 5
 
 int main()
 {
@@ -64,6 +64,10 @@ int main()
 				interpreter.UpdateTimers();
 			}
 			emulatorState = Chip8::EmulatorStates::Paused;
+			break;
+		case Chip8::EmulatorStates::Reset:
+			interpreter.Reset();
+			emulatorState = Chip8::EmulatorStates::Running;
 			break;
 		}
 

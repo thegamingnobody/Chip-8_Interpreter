@@ -186,7 +186,13 @@ Chip8::EmulatorStates Chip8::Interpreter::RenderImgui(std::string windowName, Em
 	Chip8::EmulatorStates returnState{ emulatorState };
 
 	ImGui::Begin(windowName.c_str(), nullptr);
-		ImGuiTableFlags flags = ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg;
+		if (ImGui::Button("Reset"))
+		{
+			returnState = Chip8::EmulatorStates::Reset;
+			ImGui::End();
+			return returnState;
+		}
+
 		if (emulatorState == Chip8::EmulatorStates::Running and ImGui::Button("Pause"))
 		{
 			returnState = Chip8::EmulatorStates::Paused;
@@ -200,6 +206,7 @@ Chip8::EmulatorStates Chip8::Interpreter::RenderImgui(std::string windowName, Em
 		{
 			returnState = Chip8::EmulatorStates::Step;
 		}
+		ImGuiTableFlags flags = ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg;
 		if (ImGui::BeginTable("Memory", 3, flags))
 		{
 			ImGui::TableSetupColumn("PC");
@@ -273,8 +280,7 @@ void Chip8::Interpreter::Reset()
 {
 	Renderer::GetInstance().ClearScreen();
 	ClearRegisters();
-	ClearRegisters();
-	ClearMemory();
+	//ClearMemory();
 	LoadFontset();
 	ResetTimers();
 

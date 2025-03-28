@@ -13,12 +13,14 @@ using byte = unsigned char;
 #define WINDOW_HEIGHT_BASE 480
 #define VIEWPORT_WIDTH_BASE 64
 #define VIEWPORT_HEIGHT_BASE 32
+
 namespace Chip8
 {
 	enum class EmulatorStates
 	{
 		Running,
 		Paused,
-		Step
+		Step,
+		Reset
 	};
 }
