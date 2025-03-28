@@ -27,6 +27,9 @@ namespace Chip8
 		Chip8::EmulatorStates RenderImgui(std::string windowName, EmulatorStates emulatorState) const;
 
 		bool IsWaitingForInput() const { return m_WaitForInput; }
+		bool GetDrawFlag() const { return m_DrawFlag; }
+
+		void SetDrawFlag(bool newFlag) { m_DrawFlag = newFlag; }
 	private:
 		//Reset functions
 		void ClearMemory();

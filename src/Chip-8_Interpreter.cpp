@@ -336,6 +336,7 @@ bool Chip8::Interpreter::Instruction_0NNN(opcode baseInstruction)
 	switch (instructionParam)
 	{
 	case 0xE0:
+		//m_DrawFlag = true;
 		Renderer::GetInstance().ClearScreen();
 		break;
 	case 0xEE:
@@ -473,12 +474,15 @@ bool Chip8::Interpreter::Instruction_8XYN(opcode baseInstruction)
 		m_V[registerXIndex] = YValue;
 		break;
 	case 0x1:
+		m_V[0x0F] = 0;
 		m_V[registerXIndex] = (XValue | YValue);
 		break;
 	case 0x2:
+		m_V[0x0F] = 0;
 		m_V[registerXIndex] = (XValue & YValue);
 		break;
 	case 0x3:
+		m_V[0x0F] = 0;
 		m_V[registerXIndex] = (XValue ^ YValue);
 		break;
 	case 0x4:
@@ -620,21 +624,21 @@ bool Chip8::Interpreter::Instruction_DXYN(opcode baseInstruction)
 	int height = (baseInstruction & 0x000F);
 
 	byte xCoordValue;
-	byte yCoordValue = m_V[yIndex] % renderer.GetViewportHeight();
+	byte yCoordValue = m_V[yIndex] % VIEWPORT_HEIGHT_BASE;
 	m_V[0xF] = 0;
 
 	for (int row = 0; row < height; row++)
 	{
-		if (yCoordValue >= renderer.GetViewportHeight()) continue;
+		if (yCoordValue >= VIEWPORT_HEIGHT_BASE) continue;
 
-		xCoordValue = m_V[xIndex] % renderer.GetViewportWidth();
+		xCoordValue = m_V[xIndex] % VIEWPORT_WIDTH_BASE;
 
 		byte spriteRow = m_Memory[m_I + row];
 		int size = sizeof(spriteRow) * 8;
 
 		for (int pixel = 0; pixel < size; pixel++)
 		{
-			if (xCoordValue >= renderer.GetViewportWidth()) continue;
+			if (xCoordValue >= VIEWPORT_WIDTH_BASE) continue;
 
 			if (spriteRow & (0x80 >> pixel))
 			{
@@ -649,7 +653,7 @@ bool Chip8::Interpreter::Instruction_DXYN(opcode baseInstruction)
 		yCoordValue++;
 	}
 
-	m_DrawFlag = true;
+	//m_DrawFlag = true;
 
 	return true;
 }
@@ -766,12 +770,12 @@ bool Chip8::Interpreter::Instruction_FXNN(opcode baseInstruction)
 		//0xFX55: store values of registers v0 to vX (inclusive) sequeltially starting at address in index register,	example: I will be v0, I + 1 will be v1, I + 2 will be v2 etc.
 		for (int i = 0; i <= registerXIndex; i++)
 		{
-			//Option 1
-			m_Memory[m_I + i] = m_V[i];
+			////Option 1
+			//m_Memory[m_I + i] = m_V[i];
 
-			////Option 2
-			//m_Memory[m_I] = m_V[i];
-			//m_I++;
+			//Option 2
+			m_Memory[m_I] = m_V[i];
+			m_I++;
 		}
 		break;
 	case 0x65:
@@ -779,12 +783,12 @@ bool Chip8::Interpreter::Instruction_FXNN(opcode baseInstruction)
 		//0xFX65: reverse of 0xFX55, stores values from I to I + X in v0 t vX. congif: does I increment or does it use a temp value
 		for (int i = 0; i <= registerXIndex; i++)
 		{
-			//Option 1
-			m_V[i] = m_Memory[m_I + i];
+			////Option 1
+			//m_V[i] = m_Memory[m_I + i];
 		
-			////Option 2
-			//m_V[i] = m_Memory[m_I];
-			//m_I++;
+			//Option 2
+			m_V[i] = m_Memory[m_I];
+			m_I++;
 		}
 		break;
 	default:

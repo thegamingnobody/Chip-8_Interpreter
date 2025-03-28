@@ -22,14 +22,14 @@ int main()
 	//Todo: consider: Read in from config file?
 	float windowScale{ 2.0f };
 	interpreter.Init();
-	renderer.Init(WINDOW_WIDTH_BASE, WINDOW_HEIGHT_BASE, windowScale);
+	renderer.Init(windowScale);
 	inputManager.Init();
 	//Todo: remove logger class or refactor to use imgui
 	Chip8::Logger::GetInstance().Init(false);
 	timer.Init();
 
 
-	std::vector<std::string> gameNames{ "0-chip8-logo.ch8", "1-ibm-logo.ch8", "2-corax+.ch8", "3-flags.ch8", "4-quirks.ch8", "5-keypad.ch8", "test_opcode.ch8" };
+	std::vector<std::string> gameNames{ "0-chip8-logo.ch8", "1-ibm-logo.ch8", "2-corax+.ch8", "3-flags.ch8", "4-quirks.ch8", "5-keypad.ch8", "test_opcode.ch8", "Space Invaders [David Winter].ch8"};
 	interpreter.LoadGame(gameNames[GAME_INDEX]);
 
 
@@ -50,11 +50,8 @@ int main()
 			for (int i = 0; i < instructionsPerCycle; i++)
 			{
 				interpreter.EmulateCycle();
-				if (shouldUpdateGame)
-				{
-					interpreter.UpdateTimers();
-				}
 			}
+			interpreter.UpdateTimers();
 			break;
 		case Chip8::EmulatorStates::Paused:
 			//We want to handle/update imgui, but not the game itself

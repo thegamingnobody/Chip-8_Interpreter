@@ -8,18 +8,11 @@
 
 namespace Chip8
 {
-	struct Pixel
-	{
-		int x;
-		int y;
-		Pixel(int xpos = 0, int ypos = 0) : x(xpos), y(ypos) {}
-	};
-
 	//Todo: Split into smaller classes?
 	class Renderer : public Singleton<Renderer>
 	{
 	public:
-		void Init(int windowWidth, int windowHeight, float windowScale = 1.0f);
+		void Init(float windowScale = 1.0f);
 		Chip8::EmulatorStates Render(Chip8::EmulatorStates emulatorState) const;
 		void Update();
 		void Destroy();
@@ -27,12 +20,8 @@ namespace Chip8
 		void SetBackgroundColor(const SDL_Color& newColor) { m_BackgroundColor = newColor; }
 		const SDL_Color& GetBackgroundColor() const { return m_BackgroundColor; }
 
-		int GetWindowWidth() const { return m_WindowWidthBase; }
-		int GetWindowHeight() const { return m_WindowHeightBase; }
 		float GetWindowScale() const { return m_WindowScale; }
 
-		int GetViewportWidth() const { return m_ViewportWidthBase; }
-		int GetViewportHeight() const { return m_ViewportHeightBase; }
 		float GetViewportScale() const { return m_ViewportScale; }
 
 		void SetPixel(int x, int y, bool value);
@@ -46,12 +35,8 @@ namespace Chip8
 	private:
 		void UpdateRenderTexture() const;
 
-		int m_WindowWidthBase;
-		int m_WindowHeightBase;
 		float m_WindowScale;
 
-		int m_ViewportWidthBase;
-		int m_ViewportHeightBase;
 		float m_ViewportScale;
 
 		SDL_Window* m_Window{};
@@ -61,7 +46,7 @@ namespace Chip8
 
 		//Screen
 		std::vector<std::vector<bool>> m_Screen;
-		std::vector<Pixel> m_ChangedPixels;
+		//std::vector<Pixel> m_ChangedPixels;
 		bool m_ScreenCleared;
 		ImFont* m_Font = nullptr;
 	};

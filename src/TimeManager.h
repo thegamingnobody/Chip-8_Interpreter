@@ -20,13 +20,14 @@ namespace Chip8
 		void IncrementCycleCounter() { m_CyclesExecuted++; }
 		int GetInstructionPerFrame() const { return m_InstructionsPerFrame; }
 
+		void IncrementFrameCounter() { m_FrameUpdateCount++; }
+
 		void RenderImGui(std::string windowName);
 	private:
 		float m_DeltaTime;
 
 		int m_TargetInstructionsPerSecond;
 		int m_InstructionsPerFrame;
-		double m_InstructionMsPerFrame;
 
 		int m_TargetTimerUpdatesPerSecond;
 		double m_SecondsPerTimerUpdate;
@@ -35,8 +36,10 @@ namespace Chip8
 		std::chrono::high_resolution_clock::time_point m_LastTime;
 		std::chrono::high_resolution_clock::time_point m_CurrentTime;
 		int m_CyclesExecuted;
+		int m_FrameUpdateCount;
 		float m_PerSecondStatsDelay;
 		float m_PerSecondStatsMaxDelay;
 		double m_AverageCyclesPerSecond;
+		double m_AverageFramesPerSecond;
 	};
 }
