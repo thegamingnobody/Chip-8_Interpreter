@@ -16,8 +16,6 @@ void Chip8::Renderer::Init(float windowScale)
 
 	m_ViewportScale = 8.0f;
 
-	m_ScreenCleared = true;
-
 	if (SDL_Init(SDL_INIT_VIDEO) < 0)
 	{
 		throw std::runtime_error(std::string("SDL could not initialize! SDL_Error: ") + SDL_GetError());
@@ -84,6 +82,7 @@ Chip8::EmulatorStates Chip8::Renderer::Render(Chip8::EmulatorStates emulatorStat
 	ImGui::NewFrame();
 	
 	auto& interpreter = Chip8::Interpreter::GetInstance();
+	auto& timeManager = Chip8::TimeManager::GetInstance();
 	if (interpreter.GetDrawFlag())
 	{
 		UpdateRenderTexture();
@@ -106,16 +105,6 @@ void Chip8::Renderer::Update()
 	{
 		interpreter.SetDrawFlag(false);
 		Chip8::TimeManager::GetInstance().IncrementFrameCounter();
-	}
-	
-	if (m_ScreenCleared)
-	{
-		for (int row = 0; row < VIEWPORT_HEIGHT_BASE; row++)
-		{
-			std::fill(m_Screen[row].begin(), m_Screen[row].end(), false);
-		}
-		interpreter.SetDrawFlag(true);
-		m_ScreenCleared = false;
 	}
 }
 
@@ -153,7 +142,11 @@ bool Chip8::Renderer::IsPixelOn(int x, int y) const
 
 void Chip8::Renderer::ClearScreen()
 {
-	m_ScreenCleared = true;
+	for (int row = 0; row < VIEWPORT_HEIGHT_BASE; row++)
+	{
+		std::fill(m_Screen[row].begin(), m_Screen[row].end(), false);
+	}
+	Chip8::Interpreter::GetInstance().SetDrawFlag(true);
 }
 
 Chip8::EmulatorStates Chip8::Renderer::RenderImgui(Chip8::EmulatorStates emulatorState) const
@@ -181,19 +174,21 @@ Chip8::EmulatorStates Chip8::Renderer::RenderImgui(Chip8::EmulatorStates emulato
 			// Clear out existing layout
 			ImGui::DockBuilderRemoveNode(dockspace_id);
 			// Add empty node
-			ImGui::DockBuilderAddNode(dockspace_id, dockspace_flags | ImGuiDockNodeFlags_DockSpace);
+			ImGui::DockBuilderAddNode(dockspace_id, dockspace_flags);
 			// Main node should cover entire window
 			ImGui::DockBuilderSetNodeSize(dockspace_id, ImGui::GetWindowSize());
 			// get id of main dock space area
 			ImGuiID dockspace_main_id = dockspace_id;
-			ImGuiID input_id = ImGui::DockBuilderSplitNode(dockspace_main_id, ImGuiDir_Right, 1.0f, nullptr, &dockspace_main_id);
+			ImGuiID input_id = ImGui::DockBuilderSplitNode(dockspace_main_id, ImGuiDir_Right, 0.25f, nullptr, &dockspace_main_id);
 			ImGuiID performance_id = ImGui::DockBuilderSplitNode(dockspace_main_id, ImGuiDir_Down, 0.5f, nullptr, &dockspace_main_id);
-			ImGuiID memory_id = ImGui::DockBuilderSplitNode(input_id, ImGuiDir_Down, 0.75f, nullptr, &input_id);
+			ImGuiID memory_id = ImGui::DockBuilderSplitNode(input_id, ImGuiDir_Down, 0.80f, nullptr, &input_id);
+			ImGuiID game_info = ImGui::DockBuilderSplitNode(dockspace_main_id, ImGuiDir_Right, 0.35f, nullptr, &dockspace_main_id);
 
 			ImGui::DockBuilderDockWindow("Viewport", dockspace_main_id);
 			ImGui::DockBuilderDockWindow("Performance", performance_id);
 			ImGui::DockBuilderDockWindow("Input", input_id);
 			ImGui::DockBuilderDockWindow("Memory", memory_id);
+			ImGui::DockBuilderDockWindow("Game Info", game_info);
 			ImGui::DockBuilderFinish(dockspace_id);
 		}
 	}
@@ -205,6 +200,7 @@ Chip8::EmulatorStates Chip8::Renderer::RenderImgui(Chip8::EmulatorStates emulato
 	timer.RenderImGui("Performance");
 	input.RenderImGui("Input");
 	returnState = interpreter.RenderImgui("Memory", returnState);
+	returnState = interpreter.RenderImgui("Game Info", returnState);
 
 	//ImGui::ShowDemoWindow();
 

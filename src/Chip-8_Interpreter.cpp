@@ -16,8 +16,6 @@ void Chip8::Interpreter::Init()
 	//Resize memory to 4KB and initialize registers
 	m_Memory.resize(MEMORY_SIZE);
 	m_V.resize(NR_OF_REGISTERS);
-
-	Reset();
 }
 void Chip8::Interpreter::Destroy()
 {
@@ -25,14 +23,15 @@ void Chip8::Interpreter::Destroy()
 	SDL_Quit();
 }
 
-void Chip8::Interpreter::LoadGame(const std::string& gameName)
+void Chip8::Interpreter::LoadGame(const std::string& gamePath)
 {
+	Reset();
+
 	//Todo: improve to allow any path (windows messagebox thingy)
-	std::string relativePath{ "../../../roms/" + gameName };
-	std::ifstream input(relativePath, std::ios::binary | std::ios::ate);
+	std::ifstream input(gamePath, std::ios::binary | std::ios::ate);
 	if (!input.is_open())
 	{
-		std::cerr << "Failed to open file: " << relativePath << "\n";
+		std::cerr << "Failed to open file: " << gamePath << "\n";
 		return;
 	}
 
@@ -50,6 +49,7 @@ void Chip8::Interpreter::LoadGame(const std::string& gameName)
 	}
 
 	Logger::GetInstance().Log("Game loaded successfully");
+	m_GameName = std::filesystem::path(gamePath).filename().string();
 }
 
 void Chip8::Interpreter::EmulateCycle()
@@ -185,104 +185,117 @@ Chip8::EmulatorStates Chip8::Interpreter::RenderImgui(std::string windowName, Em
 {
 	Chip8::EmulatorStates returnState{ emulatorState };
 
-	ImGui::Begin(windowName.c_str(), nullptr);
-		if (ImGui::Button("Reset"))
-		{
-			returnState = Chip8::EmulatorStates::Reset;
-			ImGui::End();
-			return returnState;
-		}
-
-		if (emulatorState == Chip8::EmulatorStates::Running and ImGui::Button("Pause"))
-		{
-			returnState = Chip8::EmulatorStates::Paused;
-		}
-		else if (emulatorState == Chip8::EmulatorStates::Paused and ImGui::Button("Resume"))
-		{
-			returnState = Chip8::EmulatorStates::Running;
-		}
-		ImGui::SameLine();
-		if (ImGui::Button("Step"))
-		{
-			returnState = Chip8::EmulatorStates::Step;
-		}
-		ImGuiTableFlags flags = ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg;
-		if (ImGui::BeginTable("Memory", 3, flags))
-		{
-			ImGui::TableSetupColumn("PC");
-			ImGui::TableSetupColumn("Address");
-			ImGui::TableSetupColumn("Value");
-			ImGui::TableHeadersRow();
-
-			for (int row = 0; row < 5; row++)
+	if (windowName == "Memory")
+	{
+		ImGui::Begin(windowName.c_str(), nullptr);
+			if (ImGui::Button("Reset"))
 			{
-				ImGui::TableNextRow();
+				returnState = Chip8::EmulatorStates::Reset;
+				ImGui::End();
+				return returnState;
+			}
 
-				//White text is default
-				ImVec4 textColor{ 1.0f, 1.0f, 1.0f, 1.0f };
-				//if ((pcInfo.MemoryValuesAtPC[row] & 0xF000) == 0xD000)
-				//{
-				//	//Instruction is a draw, color is red
-				//	textColor = ImVec4(0.85f, 0.3f, 0.3f, 1.0f);
-				//}
+			if (emulatorState == Chip8::EmulatorStates::Running and ImGui::Button("Pause"))
+			{
+				returnState = Chip8::EmulatorStates::Paused;
+			}
+			else if (emulatorState == Chip8::EmulatorStates::Paused and ImGui::Button("Resume"))
+			{
+				returnState = Chip8::EmulatorStates::Running;
+			}
+			ImGui::SameLine();
+			if (ImGui::Button("Step"))
+			{
+				returnState = Chip8::EmulatorStates::Step;
+			}
+			ImGuiTableFlags flags = ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg;
+			if (ImGui::BeginTable("Memory", 3, flags))
+			{
+				ImGui::TableSetupColumn("PC");
+				ImGui::TableSetupColumn("Address");
+				ImGui::TableSetupColumn("Value");
+				ImGui::TableHeadersRow();
 
-				int relativeIndex{ (2 * (row - 2)) };
-				opcode memoryValue = m_Memory[m_PC + relativeIndex] << 8 | m_Memory[m_PC + relativeIndex + 1];
-				for (int column = 0; column < 3; column++)
+				for (int row = 0; row < 5; row++)
 				{
-					ImGui::TableSetColumnIndex(column);
-					switch (column)
+					ImGui::TableNextRow();
+
+					//White text is default
+					ImVec4 textColor{ 1.0f, 1.0f, 1.0f, 1.0f };
+					//if ((pcInfo.MemoryValuesAtPC[row] & 0xF000) == 0xD000)
+					//{
+					//	//Instruction is a draw, color is red
+					//	textColor = ImVec4(0.85f, 0.3f, 0.3f, 1.0f);
+					//}
+
+					int relativeIndex{ (2 * (row - 2)) };
+					opcode memoryValue = m_Memory[m_PC + relativeIndex] << 8 | m_Memory[m_PC + relativeIndex + 1];
+					for (int column = 0; column < 3; column++)
 					{
-					case 0:
-						if (row == 2)
+						ImGui::TableSetColumnIndex(column);
+						switch (column)
 						{
-							ImGui::Text("=>");
-						}
-						else
+						case 0:
+							if (row == 2)
+							{
+								ImGui::Text("=>");
+							}
+							else
+							{
+								ImGui::Text("  ");
+							}
+							break;
+						case 1:
 						{
-							ImGui::Text("  ");
+							std::stringstream stream;
+							stream << "0x" << std::uppercase << std::hex << std::setfill('0') << std::setw(4) << m_PC + relativeIndex;
+							ImGui::TextColored(textColor, stream.str().c_str());
 						}
 						break;
-					case 1:
-					{
-						std::stringstream stream;
-						stream << "0x" << std::uppercase << std::hex << std::setfill('0') << std::setw(4) << m_PC + relativeIndex;
-						ImGui::TextColored(textColor, stream.str().c_str());
-					}
-					break;
-					case 2:
-					{
-						std::stringstream stream;
-						stream << "0x" << std::uppercase << std::hex << std::setfill('0') << std::setw(4) << memoryValue;
-						ImGui::TextColored(textColor, stream.str().c_str());
-					}
-					break;
+						case 2:
+						{
+							std::stringstream stream;
+							stream << "0x" << std::uppercase << std::hex << std::setfill('0') << std::setw(4) << memoryValue;
+							ImGui::TextColored(textColor, stream.str().c_str());
+						}
+						break;
+						}
 					}
 				}
-			}
-			ImGui::EndTable();
+				ImGui::EndTable();
 
-			//print register values
-			for (int i = 0; i < m_V.size(); i++)
+				//print register values
+				for (int i = 0; i < m_V.size(); i++)
+				{
+					std::stringstream stream;
+					stream << "v" << std::uppercase << std::hex << i << ": " << std::setfill('0') << std::setw(2) << static_cast<int>(m_V[i]);
+					ImGui::Text(stream.str().c_str());
+				}
+
+			}
+		ImGui::End();
+	}
+	else if (windowName == "Game Info")
+	{
+		ImGui::Begin(windowName.c_str(), nullptr);
+			ImGui::Text("Game: %s", m_GameName.c_str());
+			if (ImGui::Button("Load Game"))
 			{
-				std::stringstream stream;
-				stream << "v" << std::uppercase << std::hex << i << ": " << std::setfill('0') << std::setw(2) << static_cast<int>(m_V[i]);
-				ImGui::Text(stream.str().c_str());
+				returnState = Chip8::EmulatorStates::Loading_Game;
 			}
-
-		}
-	ImGui::End();
+		ImGui::End();
+	}
 	
 	return returnState;
 }
 
 void Chip8::Interpreter::Reset()
 {
-	Renderer::GetInstance().ClearScreen();
-	ClearRegisters();
-	//ClearMemory();
 	LoadFontset();
+	ClearRegisters();
 	ResetTimers();
+	Renderer::GetInstance().ClearScreen();
+	//ClearMemory();
 
 	m_PC = PROGRAM_COUNTER_START;
 	m_I = 0;
@@ -337,15 +350,15 @@ void Chip8::Interpreter::ResetTimers()
 bool Chip8::Interpreter::Instruction_0NNN(opcode baseInstruction)
 {
 	//0x00EE: Return from subroutine
-	byte instructionParam = (baseInstruction & 0x00FF);
+	opcode instructionParam = (baseInstruction & 0x0FFF);
 
 	switch (instructionParam)
 	{
-	case 0xE0:
-		//m_DrawFlag = true;
+	case 0x00E0:
 		Renderer::GetInstance().ClearScreen();
+		m_DrawFlag = true;
 		break;
-	case 0xEE:
+	case 0x00EE:
 		m_PC = m_Stack.top();
 		m_Stack.pop();
 		break;
@@ -629,37 +642,41 @@ bool Chip8::Interpreter::Instruction_DXYN(opcode baseInstruction)
 	int yIndex = (baseInstruction & 0x00F0) >> 4;
 	int height = (baseInstruction & 0x000F);
 
-	byte xCoordValue;
-	byte yCoordValue = m_V[yIndex] % VIEWPORT_HEIGHT_BASE;
+	byte xCoordValue = m_V[xIndex];
+	byte yCoordValue = m_V[yIndex];
 	m_V[0xF] = 0;
+
+	while (xCoordValue >= VIEWPORT_WIDTH_BASE)
+	{
+		xCoordValue -= VIEWPORT_WIDTH_BASE;
+		yCoordValue++;
+	}
+	yCoordValue = yCoordValue % VIEWPORT_HEIGHT_BASE;
 
 	for (int row = 0; row < height; row++)
 	{
-		if (yCoordValue >= VIEWPORT_HEIGHT_BASE) continue;
-
-		xCoordValue = m_V[xIndex] % VIEWPORT_WIDTH_BASE;
+		if (yCoordValue + row >= VIEWPORT_HEIGHT_BASE) 
+			continue;
 
 		byte spriteRow = m_Memory[m_I + row];
-		int size = sizeof(spriteRow) * 8;
 
-		for (int pixel = 0; pixel < size; pixel++)
+		for (int pixel = 0; pixel < 8; pixel++)
 		{
-			if (xCoordValue >= VIEWPORT_WIDTH_BASE) continue;
+			if (xCoordValue + pixel >= VIEWPORT_WIDTH_BASE)
+				continue;
 
 			if (spriteRow & (0x80 >> pixel))
 			{
-				if (renderer.IsPixelOn(xCoordValue, yCoordValue))
+				if (renderer.IsPixelOn(xCoordValue + pixel, yCoordValue + row))
 				{
 					m_V[0xF] = 1;
 				}
-				renderer.TogglePixel(xCoordValue, yCoordValue);
+				renderer.TogglePixel(xCoordValue + pixel, yCoordValue + row);
 			}
-			xCoordValue++;
 		}
-		yCoordValue++;
 	}
 
-	//m_DrawFlag = true;
+	m_DrawFlag = true;
 
 	return true;
 }

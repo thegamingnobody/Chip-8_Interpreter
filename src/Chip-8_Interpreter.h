@@ -57,7 +57,6 @@ namespace Chip8
 		bool Instruction_EXNN(opcode baseInstruction);
 		bool Instruction_FXNN(opcode baseInstruction);
 
-
 		//Main memory
 		std::vector<byte> m_Memory{};
 
@@ -80,6 +79,8 @@ namespace Chip8
 
 		bool m_DrawFlag{ true };
 		bool m_WaitForInput{ false };
+
+		std::string m_GameName{};
 	};
 
 }

@@ -21,6 +21,7 @@ namespace Chip8
 		Running,
 		Paused,
 		Step,
-		Reset
+		Reset,
+		Loading_Game
 	};
 }

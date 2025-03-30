@@ -47,7 +47,6 @@ namespace Chip8
 		//Screen
 		std::vector<std::vector<bool>> m_Screen;
 		//std::vector<Pixel> m_ChangedPixels;
-		bool m_ScreenCleared;
 		ImFont* m_Font = nullptr;
 	};
 }
