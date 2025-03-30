@@ -7,7 +7,7 @@ void Chip8::TimeManager::Init()
 {
 	m_DeltaTime = 0.0f;
 
-	m_TargetTimerUpdatesPerSecond = 60;
+	m_TargetFPS = 60;
 
 	m_TargetIPF = 11;
 
@@ -43,8 +43,8 @@ void Chip8::TimeManager::UpdateTime(bool isGamePaused)
 
 std::chrono::milliseconds Chip8::TimeManager::GetSleepTime()
 {
-	//Todo: replace magic number td::chrono::milliseconds(15) with variable
-	m_SleepTime = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::milliseconds(16) - (std::chrono::high_resolution_clock::now() - m_CurrentTime));
+    std::chrono::microseconds frameTime{ static_cast<long long>(1000000.0f / m_TargetFPS) };
+	m_SleepTime = std::chrono::duration_cast<std::chrono::milliseconds>(frameTime - (std::chrono::high_resolution_clock::now() - m_CurrentTime));
 	return m_SleepTime;
 }
 
@@ -52,16 +52,16 @@ void Chip8::TimeManager::RenderImGui(std::string windowName)
 {
 	ImGui::Begin(windowName.c_str(), nullptr);
 
-	std::string text{ "Instructions/s: " + std::to_string(GetInstructionsPerSecond()) };
-	ImGui::Text(text.c_str());
-	text = ("Instruction count: " + std::to_string(m_CyclesExecuted));
-	ImGui::Text(text.c_str());
-	text = "Frames/s: " + std::to_string(m_AverageFramesPerSecond);
-	ImGui::Text(text.c_str());
-	text = ("Frame count: " + std::to_string(m_FrameUpdateCount));
-	ImGui::Text(text.c_str());
-	text = ("Sleep Time: " + std::to_string(m_SleepTime.count()));
-	ImGui::Text(text.c_str());
+		std::string text{ "Instructions/s: " + std::to_string(GetInstructionsPerSecond()) };
+		ImGui::Text(text.c_str());
+		text = ("Instruction count: " + std::to_string(m_CyclesExecuted));
+		ImGui::Text(text.c_str());
+		text = "Frames/s: " + std::to_string(m_AverageFramesPerSecond);
+		ImGui::Text(text.c_str());
+		text = ("Frame count: " + std::to_string(m_FrameUpdateCount));
+		ImGui::Text(text.c_str());
+		text = ("Sleep Time: " + std::to_string(m_SleepTime.count()));
+		ImGui::Text(text.c_str());
 
 	ImGui::End();
 }

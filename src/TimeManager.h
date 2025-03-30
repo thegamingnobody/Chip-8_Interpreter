@@ -27,7 +27,7 @@ namespace Chip8
 		//Instructions Per Frame
 		int m_TargetIPF;
 
-		int m_TargetTimerUpdatesPerSecond;
+		int m_TargetFPS;
 
 		std::chrono::high_resolution_clock::time_point m_LastTime;
 		std::chrono::high_resolution_clock::time_point m_CurrentTime;
