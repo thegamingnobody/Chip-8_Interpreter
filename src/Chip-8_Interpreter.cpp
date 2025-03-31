@@ -643,36 +643,31 @@ bool Chip8::Interpreter::Instruction_DXYN(opcode baseInstruction)
 	int yIndex = (baseInstruction & 0x00F0) >> 4;
 	int height = (baseInstruction & 0x000F);
 
-	byte xCoordValue = m_V[xIndex];
-	byte yCoordValue = m_V[yIndex];
+	byte baseCoordX = m_V[xIndex] % VIEWPORT_WIDTH_BASE;
+	byte baseCoordY = m_V[yIndex] % VIEWPORT_HEIGHT_BASE;
 	m_V[0xF] = 0;
-
-	while (xCoordValue >= VIEWPORT_WIDTH_BASE)
-	{
-		xCoordValue -= VIEWPORT_WIDTH_BASE;
-		yCoordValue++;
-	}
-	yCoordValue = yCoordValue % VIEWPORT_HEIGHT_BASE;
 
 	for (int row = 0; row < height; row++)
 	{
-		if (yCoordValue + row >= VIEWPORT_HEIGHT_BASE) 
+		auto pixelY = (baseCoordY + row);
+		if (pixelY >= VIEWPORT_HEIGHT_BASE)
 			continue;
 
 		byte spriteRow = m_Memory[m_I + row];
 
 		for (int pixel = 0; pixel < 8; pixel++)
 		{
-			if (xCoordValue + pixel >= VIEWPORT_WIDTH_BASE)
+			auto pixelX = (baseCoordX + pixel);
+			if (pixelX >= VIEWPORT_WIDTH_BASE)
 				continue;
 
 			if (spriteRow & (0x80 >> pixel))
 			{
-				if (renderer.IsPixelOn(xCoordValue + pixel, yCoordValue + row))
+				if (renderer.IsPixelOn(pixelX, pixelY))
 				{
 					m_V[0xF] = 1;
 				}
-				renderer.TogglePixel(xCoordValue + pixel, yCoordValue + row);
+				renderer.TogglePixel(pixelX, pixelY);
 			}
 		}
 	}
