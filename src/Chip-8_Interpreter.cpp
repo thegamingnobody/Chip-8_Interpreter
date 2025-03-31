@@ -72,8 +72,6 @@ bool Chip8::Interpreter::EmulateCycle()
 	//Execute opcode
 	bool instructionExecuted{ true };
 	
-	//Todo: consider: Can this be improved/simplified?
-	//=> funtion pointer vector?
 	switch (instructionType)
 	{
 	case 0x0:
@@ -147,7 +145,6 @@ bool Chip8::Interpreter::EmulateCycle()
 		break;
 	}
 
-//Todo: look up how debug/release mode werkt in CMake 
 //Todo: make imgui window with failed instructions?
 #ifdef DEBUG
 	if (instructionExecuted and not(m_WaitForInput))
@@ -454,7 +451,6 @@ bool Chip8::Interpreter::Instruction_6XNN(opcode baseInstruction)
 }
 bool Chip8::Interpreter::Instruction_7XNN(opcode baseInstruction)
 {
-	//Todo: Set Carry flag (how?) (or don't?)
 	int registerIndex = (baseInstruction & 0x0F00) >> 8;
 	byte value = baseInstruction & 0x00FF;
 	m_V[registerIndex] += value;
@@ -619,9 +615,9 @@ bool Chip8::Interpreter::Instruction_BNNN(opcode baseInstruction)
 	m_PC = jumpValue + registerValue;
 	//Todo: CONFIG
 	// 1) originally
-	//Todo: 	0xBNNN: jump to address (NNN + value in v0)
+	//0xBNNN: jump to address (NNN + value in v0)
 	// 2) later on
-	//Todo:		0xBXNN: jump to address (XNN + value in vX)
+	//0xBXNN: jump to address (XNN + value in vX)
 	return true;
 }
 bool Chip8::Interpreter::Instruction_CXNN(opcode baseInstruction)
@@ -755,13 +751,14 @@ bool Chip8::Interpreter::Instruction_FXNN(opcode baseInstruction)
 		}
 		
 		//Check if any key is being pressed
-		if (inputManager.IsAnyKeyPressed())
+		if (inputManager.isKeyReleasedThisFrame())
 		{
 			m_WaitForInput = false;
 			for (int key = 0; key < inputManager.GetNumberOfKeys(); key++)
 			{
 				//set value of pressed key in vX
-				if (inputManager.IsKeyPressed(key))
+				//Todo: Set value of released key in vX
+				if (inputManager.IsKeyReleased(key))
 				{
 					m_V[registerXIndex] = static_cast<byte>(key & 0xFF);
 					m_PC += 2;

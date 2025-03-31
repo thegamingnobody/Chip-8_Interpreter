@@ -8,7 +8,6 @@
 
 namespace Chip8
 {
-	//Todo: Split into smaller classes?
 	class Renderer : public Singleton<Renderer>
 	{
 	public:

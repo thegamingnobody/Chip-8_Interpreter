@@ -10,7 +10,7 @@
 #include "Logger.h"
 #include <filesystem>
 
-#define GAME_INDEX 4
+#define GAME_INDEX 5
 
 std::string OpenFileDialog();
 
@@ -33,7 +33,8 @@ int main()
 	Chip8::Logger::GetInstance().Init(false);
 	timer.Init();
 
-	std::vector<std::string> gameNames{ "0-chip8-logo.ch8", "1-ibm-logo.ch8", "2-corax+.ch8", "3-flags.ch8", "4-quirks.ch8", "5-keypad.ch8", "Space Invaders [David Winter].ch8"};
+	//changed the numbering of the test roms to match the index
+	std::vector<std::string> gameNames{ "0-chip8-logo.ch8", "1-ibm-logo.ch8", "2-corax+.ch8", "3-flags.ch8", "4-quirks.ch8", "5-keypad.ch8", "6-beep.ch8", "Space Invaders [David Winter].ch8"};
 	std::filesystem::path gamePath{ "../../../roms/" + gameNames[GAME_INDEX] };
 	interpreter.LoadGame(std::filesystem::absolute(gamePath).string());
 
@@ -43,8 +44,6 @@ int main()
 	Chip8::EmulatorStates emulatorState{ Chip8::EmulatorStates::Reset };
 	while (continueRunning)
 	{
-
-	
 		timer.UpdateTime((emulatorState == Chip8::EmulatorStates::Paused));
 
 		continueRunning = interpreter.SetkeyStates();
@@ -83,11 +82,9 @@ int main()
 		interpreter.UpdateTimers();
 
 		//Imgui handling is currently done in the Renderer render function, not sure how to split this
-		//Todo: find way to improve this
 		emulatorState = renderer.Render(emulatorState);
 		renderer.Update();
 		
-		//Todo: Allow faster emulation
 		auto sleepTime{ timer.GetSleepTime() };
 		std::this_thread::sleep_for(sleepTime);
 	}

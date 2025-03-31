@@ -10,7 +10,7 @@
 
 void Chip8::InputManager::Init()
 {
-	m_KeysState.resize(16);
+	m_KeysStateCurrent.resize(16);
 	m_KeyPressedThisFrame = false;
 
 	m_Keymap = { SDLK_X, SDLK_1, SDLK_2, SDLK_3, SDLK_Q, SDLK_W, SDLK_E, SDLK_A, SDLK_S, SDLK_D, SDLK_Z, SDLK_C, SDLK_4, SDLK_R, SDLK_F, SDLK_V };
@@ -19,7 +19,9 @@ void Chip8::InputManager::Init()
 bool Chip8::InputManager::ProcessInput()
 {
 	m_KeyPressedThisFrame = false;
-	//std::fill(m_KeysState.begin(), m_KeysState.end(), false);
+	m_KeyReleasedThisFrame = false;
+
+	m_KeysStateLastFrame = m_KeysStateCurrent;
 
 	SDL_Event e;
 	while (SDL_PollEvent(&e)) 
@@ -30,10 +32,11 @@ bool Chip8::InputManager::ProcessInput()
 		}
 		else if (e.type == SDL_EVENT_KEY_DOWN)
 		{
-			for (int i = 0; i < m_KeysState.size(); i++)
+			for (int i = 0; i < m_KeysStateCurrent.size(); i++)
 			{
 				if (e.key.key == m_Keymap[i])
 				{
+					m_KeyPressedThisFrame = true;
 					SetKey(i, true);
 					break;
 				}
@@ -41,10 +44,11 @@ bool Chip8::InputManager::ProcessInput()
 		}
 		else if (e.type == SDL_EVENT_KEY_UP)
 		{
-			for (int i = 0; i < m_KeysState.size(); i++)
+			for (int i = 0; i < m_KeysStateCurrent.size(); i++)
 			{
 				if (e.key.key == m_Keymap[i])
 				{
+					m_KeyReleasedThisFrame = true;
 					SetKey(i, false);
 					break;
 				}
@@ -58,19 +62,12 @@ bool Chip8::InputManager::ProcessInput()
 
 bool Chip8::InputManager::IsKeyPressed(int key) const
 {
-	return m_KeysState[key];
+	return m_KeysStateCurrent[key];
 }
 
-bool Chip8::InputManager::IsAnyKeyPressed() const
+bool Chip8::InputManager::IsKeyReleased(int key) const
 {
-	for (auto key : m_KeysState)
-	{
-		if (key)
-		{
-			return true;
-		}
-	}
-	return false;
+	return m_KeysStateLastFrame[key];
 }
 
 void Chip8::InputManager::RenderImGui(std::string windowName)
@@ -91,7 +88,7 @@ void Chip8::InputManager::RenderImGui(std::string windowName)
 					byte buttonID = keysOrder[column + (row * 4)];
 
 					std::stringstream stream;
-					stream << std::uppercase << std::hex << static_cast<int>(buttonID) << ": " << m_KeysState[buttonID];
+					stream << std::uppercase << std::hex << static_cast<int>(buttonID) << ": " << m_KeysStateCurrent[buttonID];
 					ImGui::Text(stream.str().c_str());
 				}
 			}
@@ -119,6 +116,6 @@ void Chip8::InputManager::RenderImGui(std::string windowName)
 
 void Chip8::InputManager::SetKey(int key, bool newState)
 {
-	m_KeysState[key] = newState;
+	m_KeysStateCurrent[key] = newState;
 	m_KeyPressedThisFrame = true;
 }

@@ -39,7 +39,6 @@ namespace Chip8
 		void ResetTimers();
 
 		//Instruction functions
-		//Todo: consider: merge functions with the same instruction type (left most hex)
 		bool Instruction_0NNN(opcode baseInstruction);
 		bool Instruction_1NNN(opcode baseInstruction);
 		bool Instruction_2NNN(opcode baseInstruction);
