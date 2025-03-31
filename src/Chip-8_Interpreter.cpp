@@ -51,7 +51,7 @@ void Chip8::Interpreter::LoadGame(const std::string& gamePath)
 	m_GameName = std::filesystem::path(gamePath).filename().string();
 }
 
-void Chip8::Interpreter::EmulateCycle()
+bool Chip8::Interpreter::EmulateCycle()
 {
 	auto& logger = Logger::GetInstance();
 	auto& renderer = Renderer::GetInstance();
@@ -161,6 +161,8 @@ void Chip8::Interpreter::EmulateCycle()
 		logger.Log("[ERROR] instruction failed:", instructionThisCycle);
 	}
 #endif // DEBUG
+
+	return m_DrawFlag;
 }
 
 bool Chip8::Interpreter::SetkeyStates()

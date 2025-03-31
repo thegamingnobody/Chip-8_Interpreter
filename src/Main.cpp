@@ -43,6 +43,8 @@ int main()
 	Chip8::EmulatorStates emulatorState{ Chip8::EmulatorStates::Reset };
 	while (continueRunning)
 	{
+
+	
 		timer.UpdateTime((emulatorState == Chip8::EmulatorStates::Paused));
 
 		continueRunning = interpreter.SetkeyStates();
@@ -52,7 +54,12 @@ int main()
 		case Chip8::EmulatorStates::Running:
 			for (int i = 0; i < instructionsPerCycle; i++)
 			{
-				interpreter.EmulateCycle();
+				bool waitForVblank = interpreter.EmulateCycle();
+				if (waitForVblank)
+				{
+					//skips the rest of instructions for this frame
+					break;
+				}
 			}
 			break;
 		case Chip8::EmulatorStates::Paused:
@@ -79,7 +86,7 @@ int main()
 		//Todo: find way to improve this
 		emulatorState = renderer.Render(emulatorState);
 		renderer.Update();
-
+		
 		//Todo: Allow faster emulation
 		auto sleepTime{ timer.GetSleepTime() };
 		std::this_thread::sleep_for(sleepTime);
