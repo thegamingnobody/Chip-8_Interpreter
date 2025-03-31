@@ -262,13 +262,30 @@ Chip8::EmulatorStates Chip8::Interpreter::RenderImgui(std::string windowName, Em
 				}
 				ImGui::EndTable();
 
-				//print register values
-				for (int i = 0; i < m_V.size(); i++)
+				if (ImGui::BeginTable("Registers", 4, flags))
 				{
-					std::stringstream stream;
-					stream << "v" << std::uppercase << std::hex << i << ": " << std::setfill('0') << std::setw(2) << static_cast<int>(m_V[i]);
-					ImGui::Text(stream.str().c_str());
+					//print register values
+					for (int i = 0; i < 4; i++)
+					{
+						ImGui::TableNextRow();
+
+						for (int j = 0; j < 4; j++)
+						{
+							ImGui::TableSetColumnIndex(j);
+							std::stringstream stream;
+							stream << "v" << std::uppercase << std::hex << (i + j) << ":" << static_cast<int>(m_V[i + j]);
+							ImGui::Text(stream.str().c_str());
+						}
+					}
 				}
+				ImGui::EndTable();
+
+				std::stringstream stream;
+				stream << "delay timer: " << std::uppercase << std::hex << std::setfill('0') << std::setw(2) << static_cast<int>(m_DelayTimer);
+				ImGui::Text(stream.str().c_str());
+				stream = std::stringstream();
+				stream << "sound timer: " << std::uppercase << std::hex << std::setfill('0') << std::setw(2) << static_cast<int>(m_SoundTimer);
+				ImGui::Text(stream.str().c_str());
 
 			}
 		ImGui::End();

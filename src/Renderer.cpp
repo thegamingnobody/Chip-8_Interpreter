@@ -82,8 +82,7 @@ Chip8::EmulatorStates Chip8::Renderer::Render(Chip8::EmulatorStates emulatorStat
 	ImGui::NewFrame();
 	
 	auto& interpreter = Chip8::Interpreter::GetInstance();
-	auto& timeManager = Chip8::TimeManager::GetInstance();
-	if (interpreter.GetDrawFlag())
+	//if (interpreter.GetDrawFlag())
 	{
 		UpdateRenderTexture();
 	}

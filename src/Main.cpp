@@ -10,7 +10,7 @@
 #include "Logger.h"
 #include <filesystem>
 
-#define GAME_INDEX 5
+#define GAME_INDEX 7
 
 std::string OpenFileDialog();
 
@@ -38,7 +38,6 @@ int main()
 	std::filesystem::path gamePath{ "../../../roms/" + gameNames[GAME_INDEX] };
 	interpreter.LoadGame(std::filesystem::absolute(gamePath).string());
 
-	int instructionsPerCycle{ timer.GetInstructionPerFrame() };
 	bool continueRunning{ true };
 	//Chip8::EmulatorStates emulatorState{ Chip8::EmulatorStates::Paused };
 	Chip8::EmulatorStates emulatorState{ Chip8::EmulatorStates::Reset };
@@ -51,14 +50,15 @@ int main()
 		switch (emulatorState)
 		{
 		case Chip8::EmulatorStates::Running:
-			for (int i = 0; i < instructionsPerCycle; i++)
+			for (int i = 0; i < timer.GetInstructionPerFrame(); i++)
 			{
 				bool waitForVblank = interpreter.EmulateCycle();
-				if (waitForVblank)
-				{
-					//skips the rest of instructions for this frame
-					break;
-				}
+				//should this stay or go?
+				//if (waitForVblank)
+				//{
+				//	//skips the rest of instructions for this frame
+				//	break;
+				//}
 			}
 			break;
 		case Chip8::EmulatorStates::Paused:
@@ -84,7 +84,7 @@ int main()
 		//Imgui handling is currently done in the Renderer render function, not sure how to split this
 		emulatorState = renderer.Render(emulatorState);
 		renderer.Update();
-		
+
 		auto sleepTime{ timer.GetSleepTime() };
 		std::this_thread::sleep_for(sleepTime);
 	}
