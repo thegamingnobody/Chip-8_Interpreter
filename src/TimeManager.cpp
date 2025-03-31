@@ -54,14 +54,16 @@ void Chip8::TimeManager::RenderImGui(std::string windowName)
 
 		std::string text{ "Instructions/s: " + std::to_string(GetInstructionsPerSecond()) };
 		ImGui::Text(text.c_str());
-		text = ("Instruction count: " + std::to_string(m_CyclesExecuted));
+		//text = ("Instruction count: " + std::to_string(m_CyclesExecuted));
+		//ImGui::Text(text.c_str());
+		text = "Frame updates/s: " + std::to_string(m_AverageFramesPerSecond);
 		ImGui::Text(text.c_str());
-		text = "Frames/s: " + std::to_string(m_AverageFramesPerSecond);
-		ImGui::Text(text.c_str());
-		text = ("Frame count: " + std::to_string(m_FrameUpdateCount));
-		ImGui::Text(text.c_str());
-		text = ("Sleep Time: " + std::to_string(m_SleepTime.count()));
-		ImGui::Text(text.c_str());
+		//text = ("Frame count: " + std::to_string(m_FrameUpdateCount));
+		//ImGui::Text(text.c_str());
+		//text = ("Sleep Time: " + std::to_string(m_SleepTime.count()));
+		//ImGui::Text(text.c_str());
+
+		ImGui::InputInt("Frame updates", &m_TargetFPS);
 
 	ImGui::End();
 }

@@ -44,7 +44,6 @@ int main()
 	while (continueRunning)
 	{
 		timer.UpdateTime((emulatorState == Chip8::EmulatorStates::Paused));
-		//timer.ShouldUpdateTimers();
 
 		continueRunning = interpreter.SetkeyStates();
 

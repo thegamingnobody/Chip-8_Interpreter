@@ -1,7 +1,7 @@
 ﻿# CMakeList.txt : CMake project for Chip-8_Interpreter, include source and define
 # project specific logic here.
 #
-cmake_minimum_required(VERSION 3.16)
+cmake_minimum_required(VERSION 3.19)
 project(Chip-8_Interpreter)
 
 set(CMAKE_CXX_STANDARD 20)
@@ -47,7 +47,7 @@ set(IMGUI_SRC
     "${imgui_SOURCE_DIR}/backends/imgui_impl_sdlrenderer3.cpp"
     "${imgui_SOURCE_DIR}/imgui_demo.cpp")
 
-set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -DDEBUG")
+# set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -DDEBUG")
 
 # Add source to this project's executable.
 add_executable(${PROJECT_NAME} ${PROJECT_SRC} ${IMGUI_SRC})

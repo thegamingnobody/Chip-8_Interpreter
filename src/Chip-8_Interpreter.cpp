@@ -27,7 +27,6 @@ void Chip8::Interpreter::LoadGame(const std::string& gamePath)
 {
 	Reset();
 
-	//Todo: improve to allow any path (windows messagebox thingy)
 	std::ifstream input(gamePath, std::ios::binary | std::ios::ate);
 	if (!input.is_open())
 	{
@@ -534,7 +533,8 @@ bool Chip8::Interpreter::Instruction_8XYN(opcode baseInstruction)
 		break;
 	case 0x6:
 		{
-			//m_V[registerXIndex] = YValue;
+			m_V[registerXIndex] = YValue;
+			XValue = m_V[registerXIndex];
 			byte lostBit = (XValue & 0x01);
 
 			XValue = XValue >> 1;
@@ -559,10 +559,11 @@ bool Chip8::Interpreter::Instruction_8XYN(opcode baseInstruction)
 		break;
 	case 0xE:
 		{
-			byte lostBit = (YValue & 0x80);
 			m_V[registerXIndex] = YValue;
+			XValue = m_V[registerXIndex];
+			byte lostBit = (XValue & 0x80);
 
-			XValue = YValue << 1;
+			XValue = XValue << 1;
 			m_V[registerXIndex] = XValue;
 
 			m_V[0xF] = lostBit >> 7;
