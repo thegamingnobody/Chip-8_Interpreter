@@ -681,10 +681,15 @@ bool Chip8::Interpreter::Instruction_BNNN(opcode baseInstruction)
 {
 	opcode jumpValue = (baseInstruction & 0x0FFF);
 	byte xIndex = 0;
-	//byte xIndex = (baseInstruction & 0x0F00) >> 8;
+	bool jumpQuirk = Chip8::QuirkManager::GetInstance().GetJumpQuirk();
+	if (jumpQuirk)
+	{
+		xIndex = (baseInstruction & 0x0F00) >> 8;
+	}
 
 	byte registerValue = m_V[xIndex];
 	m_PC = jumpValue + registerValue;
+
 	//Todo: CONFIG
 	// 1) originally
 	//0xBNNN: jump to address (NNN + value in v0)
@@ -726,8 +731,6 @@ bool Chip8::Interpreter::Instruction_DXYN(opcode baseInstruction)
 		{
 			pixelY = pixelY % VIEWPORT_HEIGHT_BASE;
 		}
-		//else if (pixelY >= VIEWPORT_HEIGHT_BASE)
-		//	continue;
 
 		byte spriteRow = m_Memory[m_I + row];
 
