@@ -708,6 +708,7 @@ bool Chip8::Interpreter::Instruction_CXNN(opcode baseInstruction)
 bool Chip8::Interpreter::Instruction_DXYN(opcode baseInstruction)
 {
 	auto& renderer = Renderer::GetInstance();
+	bool wrapQuirk = Chip8::QuirkManager::GetInstance().GetWrapQuirk();
 
 	int xIndex = (baseInstruction & 0x0F00) >> 8;
 	int yIndex = (baseInstruction & 0x00F0) >> 4;
@@ -720,15 +721,25 @@ bool Chip8::Interpreter::Instruction_DXYN(opcode baseInstruction)
 	for (int row = 0; row < height; row++)
 	{
 		auto pixelY = (baseCoordY + row);
-		if (pixelY >= VIEWPORT_HEIGHT_BASE)
-			continue;
+
+		if (wrapQuirk)
+		{
+			pixelY = pixelY % VIEWPORT_HEIGHT_BASE;
+		}
+		//else if (pixelY >= VIEWPORT_HEIGHT_BASE)
+		//	continue;
 
 		byte spriteRow = m_Memory[m_I + row];
 
 		for (int pixel = 0; pixel < 8; pixel++)
 		{
 			auto pixelX = (baseCoordX + pixel);
-			if (pixelX >= VIEWPORT_WIDTH_BASE)
+
+			if (wrapQuirk)
+			{
+				pixelX = pixelX % VIEWPORT_WIDTH_BASE;
+			}
+			else if (pixelY >= VIEWPORT_HEIGHT_BASE or pixelX >= VIEWPORT_WIDTH_BASE)
 				continue;
 
 			if (spriteRow & (0x80 >> pixel))
