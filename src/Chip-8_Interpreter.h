@@ -78,8 +78,6 @@ namespace Chip8
 
 		bool m_DrawFlag{ true };
 		bool m_WaitForInput{ false };
-
-		std::string m_GameName{};
 	};
 
 }

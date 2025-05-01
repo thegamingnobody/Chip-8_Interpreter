@@ -10,6 +10,9 @@
 #include <cassert>
 #include "Logger.h"
 #include "TimeManager.h"
+#include "QuirkManager.h"
+#include <openssl/sha.h>
+
 
 void Chip8::Interpreter::Init()
 {
@@ -42,13 +45,30 @@ void Chip8::Interpreter::LoadGame(const std::string& gamePath)
 
 	//Copy input ifstream into m_Memory
 	//Todo: consider: improve with a std algorithm
+    std::vector<unsigned char> buffer(fileSize);
 	for (int i = 0; i < fileSize; ++i)
 	{
 		m_Memory[i + m_PC] = input.get();
+		buffer[i] = m_Memory[i + m_PC];
 	}
 
-	Logger::GetInstance().Log("Game loaded successfully");
-	m_GameName = std::filesystem::path(gamePath).filename().string();
+	Logger::GetInstance().Log("Game loaded successfully");	
+
+	//*-----------------*
+	//|	  Create hash   |
+	//*-----------------*
+	unsigned char hash[SHA_DIGEST_LENGTH]; // == 20
+	input.read(reinterpret_cast<char*>(buffer.data()), fileSize);
+
+	SHA1(buffer.data(), fileSize, hash);
+
+	std::stringstream stream;
+	for (int i = 0; i < SHA_DIGEST_LENGTH; i++)
+	{
+		stream << std::setfill('0') << std::setw(2) << std::hex << static_cast<int>(hash[i]);
+	}
+
+	Chip8::QuirkManager::GetInstance().LoadGameQuirks(stream.str());
 }
 
 bool Chip8::Interpreter::EmulateCycle()
@@ -292,8 +312,32 @@ Chip8::EmulatorStates Chip8::Interpreter::RenderImgui(std::string windowName, Em
 	}
 	else if (windowName == "Game Info")
 	{
-		ImGui::Begin(windowName.c_str(), nullptr);
-			ImGui::Text("Game: %s", m_GameName.c_str());
+		ImGui::Begin(windowName.c_str(), nullptr);			
+			auto gameInfo = Chip8::QuirkManager::GetInstance().GetGameInfo();
+			auto& gameQuirks = Chip8::QuirkManager::GetInstance().GetQuirks();
+
+			ImGui::Text("Title: %s", gameInfo.title.c_str());
+			ImGui::Text("Author: ");
+
+			for (int author = 0; author < gameInfo.authors.size(); author++)
+			{
+				ImGui::SameLine();
+				ImGui::Text("%s", gameInfo.authors[author].c_str());
+				if (author != gameInfo.authors.size() - 1)
+				{
+					ImGui::Text(", ");
+				}
+			}
+
+			ImGui::TextWrapped("Description: %s", gameInfo.description.c_str());
+			//ImGui::Text("Description: %s", gameInfo.description.c_str());
+			
+			ImGui::Checkbox("Shift Quirk", &gameQuirks.shiftQuirk);
+			ImGui::Checkbox("Load Store Quirk", &gameQuirks.loadStoreQuirk);
+			ImGui::Checkbox("Wrap Quirk", &gameQuirks.wrapQuirk);
+			ImGui::Checkbox("Jump Quirk", &gameQuirks.jumpQuirk);
+			ImGui::Checkbox("Vblank Quirk", &gameQuirks.vblankQuirk);
+
 			if (ImGui::Button("Load Game"))
 			{
 				returnState = Chip8::EmulatorStates::Loading_Game;
@@ -548,8 +592,13 @@ bool Chip8::Interpreter::Instruction_8XYN(opcode baseInstruction)
 		break;
 	case 0x6:
 		{
-			m_V[registerXIndex] = YValue;
-			XValue = m_V[registerXIndex];
+			bool shiftQuirk = Chip8::QuirkManager::GetInstance().GetShiftQuirk();
+
+			if (!shiftQuirk)
+			{
+				m_V[registerXIndex] = YValue;
+				XValue = m_V[registerXIndex];
+			}
 			byte lostBit = (XValue & 0x01);
 
 			XValue = XValue >> 1;
@@ -574,8 +623,13 @@ bool Chip8::Interpreter::Instruction_8XYN(opcode baseInstruction)
 		break;
 	case 0xE:
 		{
-			m_V[registerXIndex] = YValue;
-			XValue = m_V[registerXIndex];
+			bool shiftQuirk = Chip8::QuirkManager::GetInstance().GetShiftQuirk();
+
+			if (!shiftQuirk)
+			{
+				m_V[registerXIndex] = YValue;
+				XValue = m_V[registerXIndex];
+			}
 			byte lostBit = (XValue & 0x80);
 
 			XValue = XValue << 1;

@@ -10,7 +10,8 @@
 #include "Logger.h"
 #include <filesystem>
 
-#define GAME_INDEX 7
+
+#define GAME_INDEX 4
 
 std::string OpenFileDialog();
 

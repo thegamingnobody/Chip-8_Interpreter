@@ -23,6 +23,15 @@ FetchContent_Declare(
     )
 FetchContent_MakeAvailable(Imgui)
 
+FetchContent_Declare(
+	nlohmannJson 
+	GIT_REPOSITORY https://github.com/nlohmann/json.git
+	GIT_TAG v3.12.0
+)
+FetchContent_MakeAvailable(nlohmannJson)
+
+find_package(OpenSSL REQUIRED)
+
 set(PROJECT_SRC
     "src/Main.cpp"
     "src/Chip-8_Interpreter.cpp"
@@ -36,7 +45,10 @@ set(PROJECT_SRC
     "src/Logger.cpp"
     "src/Logger.h" 
     "src/TimeManager.h" 
-    "src/TimeManager.cpp")
+    "src/TimeManager.cpp" 
+    "src/QuirkManager.h" 
+    "src/QuirkManager.cpp"
+)
 
 set(IMGUI_SRC
     "${imgui_SOURCE_DIR}/imgui.cpp"
@@ -55,7 +67,7 @@ add_executable(${PROJECT_NAME} ${PROJECT_SRC} ${IMGUI_SRC})
 target_include_directories(${PROJECT_NAME} PRIVATE ${imgui_SOURCE_DIR})
 
 # Link SDL to project
-target_link_libraries(${PROJECT_NAME} PRIVATE SDL3::SDL3)
+target_link_libraries(${PROJECT_NAME} PRIVATE SDL3::SDL3 OpenSSL::SSL OpenSSL::Crypto nlohmann_json::nlohmann_json)
 
 # Include src in project
 target_include_directories(${PROJECT_NAME} PUBLIC ${CMAKE_SOURCE_DIR}/src)
