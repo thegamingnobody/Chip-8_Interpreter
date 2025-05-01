@@ -8,7 +8,8 @@ namespace Chip8
 	struct Quirks  
 	{  
 		bool shiftQuirk;  
-		bool loadStoreQuirk;  
+		bool loadStoreQuirkIncrement;  
+		bool loadStoreQuirkUnchanged;  
 		bool wrapQuirk;  
 		bool jumpQuirk;  
 		bool vblankQuirk;  
@@ -69,8 +70,11 @@ namespace Chip8
 		bool GetShiftQuirk() const { return m_Quirks.shiftQuirk; }
 		void SetShiftQuirk(bool value) { m_Quirks.shiftQuirk = value; }
 
-		bool GetLoadStoreQuirk() const { return m_Quirks.loadStoreQuirk; }
-		void SetLoadStoreQuirk(bool value) { m_Quirks.loadStoreQuirk = value; }
+		bool GetLoadStoreQuirkIncrement() const { return m_Quirks.loadStoreQuirkIncrement; }
+		void SetLoadStoreQuirkIncrement(bool value) { m_Quirks.loadStoreQuirkIncrement = value; }
+
+		bool GetLoadStoreQuirkUnchanged() const { return m_Quirks.loadStoreQuirkUnchanged; }
+		void SetLoadStoreQuirkUnchanged(bool value) { m_Quirks.loadStoreQuirkUnchanged = value; }
 		
 		bool GetWrapQuirk() const { return m_Quirks.wrapQuirk; }
 		void SetWrapQuirk(bool value) { m_Quirks.wrapQuirk = value; }

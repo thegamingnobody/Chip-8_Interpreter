@@ -333,7 +333,8 @@ Chip8::EmulatorStates Chip8::Interpreter::RenderImgui(std::string windowName, Em
 			//ImGui::Text("Description: %s", gameInfo.description.c_str());
 			
 			ImGui::Checkbox("Shift Quirk", &gameQuirks.shiftQuirk);
-			ImGui::Checkbox("Load Store Quirk", &gameQuirks.loadStoreQuirk);
+			ImGui::Checkbox("Load Store Quirk Increment", &gameQuirks.loadStoreQuirkIncrement);
+			ImGui::Checkbox("Load Store Quirk Unchanged", &gameQuirks.loadStoreQuirkUnchanged);
 			ImGui::Checkbox("Wrap Quirk", &gameQuirks.wrapQuirk);
 			ImGui::Checkbox("Jump Quirk", &gameQuirks.jumpQuirk);
 			ImGui::Checkbox("Vblank Quirk", &gameQuirks.vblankQuirk);
@@ -857,38 +858,51 @@ bool Chip8::Interpreter::Instruction_FXNN(opcode baseInstruction)
 	case 0x55:
 		{
 			//0xFX55: store values of registers v0 to vX (inclusive) sequeltially starting at address in index register,	example: I will be v0, I + 1 will be v1, I + 2 will be v2 etc.
-			bool loadStoreQuirk = Chip8::QuirkManager::GetInstance().GetLoadStoreQuirk();
+			bool loadStoreQuirkIncrement = Chip8::QuirkManager::GetInstance().GetLoadStoreQuirkIncrement();
+			bool loadStoreQuirkUnchanged = Chip8::QuirkManager::GetInstance().GetLoadStoreQuirkUnchanged();
 
 			for (int i = 0; i <= registerXIndex; i++)
 			{
-				if (loadStoreQuirk)
+				if (loadStoreQuirkUnchanged)
+				{
+					m_Memory[m_I + i] = m_V[i];
+				}
+				else
 				{
 					m_Memory[m_I] = m_V[i];
 					m_I++;
 				}
-				else
-				{
-					m_Memory[m_I + i] = m_V[i];
-				}
+
+
 			}
+			if (!loadStoreQuirkUnchanged and loadStoreQuirkIncrement)
+			{
+				m_I--;
+			}
+
 		}
 		break;
 	case 0x65:
 		{
 			//0xFX65: reverse of 0xFX55, stores values from I to I + X in v0 t vX. congif: does I increment or does it use a temp value
-			bool loadStoreQuirk = Chip8::QuirkManager::GetInstance().GetLoadStoreQuirk();
+			bool loadStoreQuirkIncrement = Chip8::QuirkManager::GetInstance().GetLoadStoreQuirkIncrement();
+			bool loadStoreQuirkUnchanged = Chip8::QuirkManager::GetInstance().GetLoadStoreQuirkUnchanged();
 		
 			for (int i = 0; i <= registerXIndex; i++)
 			{
-				if (loadStoreQuirk)
+				if (loadStoreQuirkUnchanged)
+				{
+					m_V[i] = m_Memory[m_I + i];
+				}
+				else
 				{
 					m_V[i] = m_Memory[m_I];
 					m_I++;
 				}
-				else
-				{
-					m_V[i] = m_Memory[m_I + i];
-				}
+			}
+			if (!loadStoreQuirkUnchanged and loadStoreQuirkIncrement)
+			{
+				m_I--;
 			}
 		}
 		break;
