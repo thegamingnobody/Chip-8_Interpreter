@@ -338,6 +338,7 @@ Chip8::EmulatorStates Chip8::Interpreter::RenderImgui(std::string windowName, Em
 			ImGui::Checkbox("Wrap Quirk", &gameQuirks.wrapQuirk);
 			ImGui::Checkbox("Jump Quirk", &gameQuirks.jumpQuirk);
 			ImGui::Checkbox("Vblank Quirk", &gameQuirks.vblankQuirk);
+			ImGui::Checkbox("Vf Reset Quirk", &gameQuirks.vFResetQuirk);
 
 			if (ImGui::Button("Load Game"))
 			{
@@ -521,7 +522,6 @@ bool Chip8::Interpreter::Instruction_7XNN(opcode baseInstruction)
 }
 bool Chip8::Interpreter::Instruction_8XYN(opcode baseInstruction)
 {
-	//Todo: CONFIG
 	//	 0x8XYN: various different instructions based on the value of N
 	//			- 0x8XY0: vX is set to value of vY
 	//			- 0x8XY1: vX is set to the result of a binary OR  between vX and vY, vY is not affected
@@ -546,22 +546,33 @@ bool Chip8::Interpreter::Instruction_8XYN(opcode baseInstruction)
 	byte XValue = m_V[registerXIndex];
 	byte YValue = m_V[registerYIndex];
 
+	bool vFResetQuirk = Chip8::QuirkManager::GetInstance().GetVfResetQuirk();
+
 	switch (subInstruction)
 	{
 	case 0x0:
 		m_V[registerXIndex] = YValue;
 		break;
 	case 0x1:
-		m_V[0x0F] = 0;
 		m_V[registerXIndex] = (XValue | YValue);
+		if (vFResetQuirk)
+		{
+			m_V[0x0F] = 0;
+		}
 		break;
 	case 0x2:
-		m_V[0x0F] = 0;
 		m_V[registerXIndex] = (XValue & YValue);
+		if (vFResetQuirk)
+		{
+			m_V[0x0F] = 0;
+		}
 		break;
 	case 0x3:
-		m_V[0x0F] = 0;
 		m_V[registerXIndex] = (XValue ^ YValue);
+		if (vFResetQuirk)
+		{
+			m_V[0x0F] = 0;
+		}
 		break;
 	case 0x4:
 		{	
@@ -690,7 +701,6 @@ bool Chip8::Interpreter::Instruction_BNNN(opcode baseInstruction)
 	byte registerValue = m_V[xIndex];
 	m_PC = jumpValue + registerValue;
 
-	//Todo: CONFIG
 	// 1) originally
 	//0xBNNN: jump to address (NNN + value in v0)
 	// 2) later on

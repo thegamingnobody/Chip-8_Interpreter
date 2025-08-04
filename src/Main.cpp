@@ -24,13 +24,10 @@ int main()
 	auto& interpreter = Chip8::Interpreter::GetInstance();
 	auto& inputManager = Chip8::InputManager::GetInstance();
 
-
-	//Todo: consider: Read in from config file?
 	float windowScale{ 2.0f };
 	interpreter.Init();
 	renderer.Init(windowScale);
 	inputManager.Init();
-	//Todo: remove logger class or refactor to use imgui
 	Chip8::Logger::GetInstance().Init(false);
 	timer.Init();
 

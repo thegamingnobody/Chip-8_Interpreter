@@ -73,7 +73,6 @@ void Chip8::Renderer::Init(float windowScale)
 
 Chip8::EmulatorStates Chip8::Renderer::Render(Chip8::EmulatorStates emulatorState) const
 {
-	//Todo: Implement selectable color palettes
 	SDL_SetRenderDrawColor(m_Renderer, 0, 0, 0, 255);
 	SDL_RenderClear(m_Renderer);
 

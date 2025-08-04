@@ -13,6 +13,7 @@ namespace Chip8
 		bool wrapQuirk;  
 		bool jumpQuirk;  
 		bool vblankQuirk;  
+		bool vFResetQuirk;
 	};  
 
 	struct Rom  
@@ -85,6 +86,8 @@ namespace Chip8
 		bool GetVblankQuirk() const { return m_Quirks.vblankQuirk; }
 		void SetVblankQuirk(bool value) { m_Quirks.vblankQuirk = value; }
 
+		bool GetVfResetQuirk() const { return m_Quirks.vFResetQuirk; }
+		void SetVfResetQuirk(bool value) { m_Quirks.vFResetQuirk = value; }
 	private:
 		Chip8::GameInfo CreateGameInfo(std::string path, int gameID);
 
