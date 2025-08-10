@@ -10,7 +10,7 @@ void Chip8::QuirkManager::LoadGameQuirks(const std::string& hash)
 {
 	//Todo: implement loading quirk data based on the hash
 	std::string basePath{ "..\\..\\..\\src\\Quirks\\" };
-	std::vector<std::string> jsonDataNames = { "sha1-hashes.json", "programs.json" };
+	std::vector<std::string> jsonDataNames = { "sha1-hashes.json", "programs.json", "platforms.json"};
 
 	std::ifstream hashFile(basePath + jsonDataNames[0]);
 
@@ -31,6 +31,68 @@ void Chip8::QuirkManager::LoadGameQuirks(const std::string& hash)
 	std::cout << "Game ID: " << gameId << "\n";
 	
 	m_GameInfo = CreateGameInfo(basePath + jsonDataNames[1], gameId);
+	auto it = std::find_if(m_GameInfo.roms.begin(), m_GameInfo.roms.end(), [hash](Rom& rom) {
+		return rom.hash == hash;
+		});
+
+	if (it != m_GameInfo.roms.end())
+	{
+		m_CurrentRom = *it;
+	}
+
+	std::ifstream platformsFile(basePath + jsonDataNames[2]);
+	if (!platformsFile.is_open())
+	{
+		std::cerr << "Failed to open file: " << basePath + jsonDataNames[2] << "\n";
+		return;
+	}
+
+	json platformsData = json::parse(platformsFile);
+	auto platformsItems = platformsData.items();
+
+	for (auto platformItem : platformsItems)
+	{
+		const json& platformData = platformItem.value();
+
+		if (platformData.value("id", "") != m_CurrentRom.platforms[0]) continue;
+
+		if (platformData.contains("quirks") == false)
+		{
+			std::cout << "No quirks found for platform: " << platformData["id"] << "\n";
+			continue;
+		}
+
+		const auto& quirks = platformData["quirks"];
+
+		if (quirks.contains("shift"))
+		{
+			m_Quirks.shiftQuirk = quirks["shift"].get<bool>();
+		}
+		if (quirks.contains("memoryIncrementByX"))
+		{
+			m_Quirks.loadStoreQuirkIncrement = quirks["memoryIncrementByX"].get<bool>();
+		}
+		if (quirks.contains("memoryLeaveIUnchanged"))
+		{
+			m_Quirks.loadStoreQuirkUnchanged = quirks["memoryLeaveIUnchanged"].get<bool>();
+		}
+		if (quirks.contains("wrap"))
+		{
+			m_Quirks.wrapQuirk = quirks["wrap"].get<bool>();
+		}
+		if (quirks.contains("jump"))
+		{
+			m_Quirks.jumpQuirk = quirks["jump"].get<bool>();
+		}
+		if (quirks.contains("vblank"))
+		{
+			m_Quirks.vblankQuirk = quirks["vblank"].get<bool>();
+		}
+		if (quirks.contains("logic"))
+		{
+			m_Quirks.vFResetQuirk = quirks["logic"].get<bool>();
+		}
+	}
 }
 
 Chip8::GameInfo Chip8::QuirkManager::CreateGameInfo(std::string path, int gameID)

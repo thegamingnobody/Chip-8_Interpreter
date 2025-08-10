@@ -11,7 +11,7 @@
 #include <filesystem>
 
 
-#define GAME_INDEX 4
+#define GAME_INDEX 7
 
 std::string OpenFileDialog();
 

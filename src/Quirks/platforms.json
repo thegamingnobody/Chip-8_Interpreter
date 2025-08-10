@@ -41,7 +41,7 @@
     "defaultTickrate": 12,
     "quirks": {
       "shift": false,
-      "memoryIncrementByX": false,`
+      "memoryIncrementByX": false,
       "memoryLeaveIUnchanged": false,
       "wrap": false,
       "jump": false,

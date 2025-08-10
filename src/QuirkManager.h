@@ -93,5 +93,6 @@ namespace Chip8
 
 		Quirks m_Quirks{};
 		GameInfo m_GameInfo{};
+		Rom m_CurrentRom{};
 	};  
 }
