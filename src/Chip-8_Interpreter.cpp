@@ -12,6 +12,8 @@
 #include "TimeManager.h"
 #include "QuirkManager.h"
 #include <openssl/sha.h>
+#include <SDL_mixer.h>
+#include <AudioManager.h>
 
 
 void Chip8::Interpreter::Init()
@@ -196,6 +198,17 @@ void Chip8::Interpreter::UpdateTimers()
 	if (m_SoundTimer > 0)
 	{
 		m_SoundTimer--;
+		if (AudioManager::GetInstance().IsSoundEnabled() == false)
+		{
+			AudioManager::GetInstance().StartSound();
+		}
+	}
+	else
+	{
+		if (AudioManager::GetInstance().IsSoundEnabled())
+		{
+			AudioManager::GetInstance().StopSound();
+		}
 	}
 }
 

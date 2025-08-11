@@ -55,7 +55,8 @@ set(PROJECT_SRC
     "src/TimeManager.cpp" 
     "src/QuirkManager.h" 
     "src/QuirkManager.cpp"
-)
+    "src/AudioManager.cpp"  
+    "src/AudioManager.h")
 
 set(IMGUI_SRC
     "${imgui_SOURCE_DIR}/imgui.cpp"
