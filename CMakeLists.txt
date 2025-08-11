@@ -10,11 +10,18 @@ set(CMAKE_CXX_STANDARD 20)
 include(FetchContent)
 
 FetchContent_Declare(
-    SDL3
+    SDL2
     GIT_REPOSITORY https://github.com/libsdl-org/SDL.git
-    GIT_TAG release-3.2.4
-    )
-FetchContent_MakeAvailable(SDL3)
+    GIT_TAG release-2.30.11
+)
+FetchContent_MakeAvailable(SDL2)
+
+FetchContent_Declare(
+    SDL2_mixer
+    GIT_REPOSITORY https://github.com/libsdl-org/SDL_mixer.git
+    GIT_TAG release-2.8.1
+)
+FetchContent_MakeAvailable(SDL2_mixer)
 
 FetchContent_Declare(
     Imgui
@@ -48,15 +55,16 @@ set(PROJECT_SRC
     "src/TimeManager.cpp" 
     "src/QuirkManager.h" 
     "src/QuirkManager.cpp"
-)
+    "src/AudioManager.cpp"  
+    "src/AudioManager.h")
 
 set(IMGUI_SRC
     "${imgui_SOURCE_DIR}/imgui.cpp"
     "${imgui_SOURCE_DIR}/imgui_draw.cpp"
     "${imgui_SOURCE_DIR}/imgui_tables.cpp"
     "${imgui_SOURCE_DIR}/imgui_widgets.cpp"
-    "${imgui_SOURCE_DIR}/backends/imgui_impl_sdl3.cpp"
-    "${imgui_SOURCE_DIR}/backends/imgui_impl_sdlrenderer3.cpp"
+    "${imgui_SOURCE_DIR}/backends/imgui_impl_sdl2.cpp"
+    "${imgui_SOURCE_DIR}/backends/imgui_impl_sdlrenderer2.cpp"
     "${imgui_SOURCE_DIR}/imgui_demo.cpp")
 
 # set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -DDEBUG")
@@ -67,15 +75,14 @@ add_executable(${PROJECT_NAME} ${PROJECT_SRC} ${IMGUI_SRC})
 target_include_directories(${PROJECT_NAME} PRIVATE ${imgui_SOURCE_DIR})
 
 # Link SDL to project
-target_link_libraries(${PROJECT_NAME} PRIVATE SDL3::SDL3 OpenSSL::SSL OpenSSL::Crypto nlohmann_json::nlohmann_json)
+target_link_libraries(${PROJECT_NAME} PRIVATE SDL2main SDL2::SDL2 SDL2_mixer::SDL2_mixer OpenSSL::SSL OpenSSL::Crypto nlohmann_json::nlohmann_json)
 
 # Include src in project
 target_include_directories(${PROJECT_NAME} PUBLIC ${CMAKE_SOURCE_DIR}/src)
 target_include_directories(${PROJECT_NAME} PUBLIC ${CMAKE_SOURCE_DIR}/roms)
 
-
 add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy_if_different
-    $<TARGET_FILE:SDL3::SDL3>
+    $<TARGET_FILE:SDL2::SDL2>
     $<TARGET_FILE_DIR:${PROJECT_NAME}>
 )

@@ -1,5 +1,5 @@
 #include "ScreenManager.h"
-#include <SDL3/SDL_render.h>
+#include <SDL2/SDL_render.h>
 
 void Chip8::ScreenManager::Init(int windowWidth, int windowHeight, float windowScale)
 {	

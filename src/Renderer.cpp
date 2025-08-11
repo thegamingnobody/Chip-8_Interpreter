@@ -3,8 +3,8 @@
 #include <iostream>
 #include "ScreenManager.h"
 #include <cassert>
-#include <backends/imgui_impl_sdl3.h>
-#include <backends/imgui_impl_sdlrenderer3.h>
+#include <backends/imgui_impl_sdl2.h>
+#include <backends/imgui_impl_sdlrenderer2.h>
 #include "TimeManager.h"
 #include "InputManager.h"
 #include <imgui_internal.h>
@@ -21,13 +21,13 @@ void Chip8::Renderer::Init(float windowScale)
 		throw std::runtime_error(std::string("SDL could not initialize! SDL_Error: ") + SDL_GetError());
 	}
 
-	m_Window = SDL_CreateWindow("Window", WINDOW_WIDTH_BASE * m_WindowScale, WINDOW_HEIGHT_BASE * m_WindowScale, NULL);
+	m_Window = SDL_CreateWindow("Window", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, static_cast<int>(WINDOW_WIDTH_BASE * m_WindowScale), static_cast<int>(WINDOW_HEIGHT_BASE * m_WindowScale), SDL_WINDOW_SHOWN);
 	if (!m_Window)
 	{
 		throw std::runtime_error(std::string("SDL could not create window! SDL_Error: ") + SDL_GetError());
 	}
 
-	m_Renderer = SDL_CreateRenderer(m_Window, NULL);
+	m_Renderer = SDL_CreateRenderer(m_Window, -1, SDL_RENDERER_ACCELERATED);
 	if (!m_Renderer)
 	{
 		throw std::runtime_error(std::string("SDL could not create renderer! SDL_Error: ") + SDL_GetError());
@@ -48,8 +48,8 @@ void Chip8::Renderer::Init(float windowScale)
 
 	IMGUI_CHECKVERSION();
 	ImGui::CreateContext();
-	ImGui_ImplSDL3_InitForSDLRenderer(m_Window, m_Renderer);
-	ImGui_ImplSDLRenderer3_Init(m_Renderer);
+	ImGui_ImplSDL2_InitForSDLRenderer(m_Window, m_Renderer);
+	ImGui_ImplSDLRenderer2_Init(m_Renderer);
 
 	ImGuiIO& io = ImGui::GetIO();
 	m_Font = io.Fonts->AddFontFromFileTTF( "../../../ProggyClean.ttf", 24);
@@ -62,7 +62,7 @@ void Chip8::Renderer::Init(float windowScale)
 	{
 		for (int col = 0; col < m_Screen[row].size(); col++)
 		{
-			SDL_RenderPoint(m_Renderer, col, row);
+			SDL_RenderDrawPoint(m_Renderer, col, row);
 		}
 	}
 	SDL_SetRenderTarget(m_Renderer, NULL);
@@ -76,8 +76,8 @@ Chip8::EmulatorStates Chip8::Renderer::Render(Chip8::EmulatorStates emulatorStat
 	SDL_SetRenderDrawColor(m_Renderer, 0, 0, 0, 255);
 	SDL_RenderClear(m_Renderer);
 
-	ImGui_ImplSDLRenderer3_NewFrame();
-	ImGui_ImplSDL3_NewFrame();
+	ImGui_ImplSDLRenderer2_NewFrame();
+	ImGui_ImplSDL2_NewFrame();
 	ImGui::NewFrame();
 	
 	auto& interpreter = Chip8::Interpreter::GetInstance();
@@ -89,7 +89,7 @@ Chip8::EmulatorStates Chip8::Renderer::Render(Chip8::EmulatorStates emulatorStat
 	auto newRunningState = RenderImgui(emulatorState);
 
 	ImGui::Render();
-	ImGui_ImplSDLRenderer3_RenderDrawData(ImGui::GetDrawData(), m_Renderer);
+	ImGui_ImplSDLRenderer2_RenderDrawData(ImGui::GetDrawData(), m_Renderer);
 
 	SDL_RenderPresent(m_Renderer);
 
@@ -109,8 +109,8 @@ void Chip8::Renderer::Update()
 void Chip8::Renderer::Destroy()
 {
 	//ImGui_ImplOpenGL3_Shutdown();
-	ImGui_ImplSDLRenderer3_Shutdown();
-	ImGui_ImplSDL3_Shutdown();
+	ImGui_ImplSDLRenderer2_Shutdown();
+	ImGui_ImplSDL2_Shutdown();
 	ImGui::DestroyContext();
 
 	if (m_Renderer != nullptr)
@@ -210,7 +210,7 @@ Chip8::EmulatorStates Chip8::Renderer::RenderImgui(Chip8::EmulatorStates emulato
 void Chip8::Renderer::UpdateRenderTexture() const
 {
 	SDL_SetRenderTarget(m_Renderer, m_RenderTexture);
-	SDL_SetTextureScaleMode(m_RenderTexture, SDL_SCALEMODE_NEAREST);
+	//SDL_SetTextureScaleMode(m_RenderTexture, SDL_SCALEMODE_NEAREST);
 
 	//for (Pixel pixel : m_ChangedPixels)
 	for (int row = 0; row < VIEWPORT_HEIGHT_BASE; row++)
@@ -227,7 +227,7 @@ void Chip8::Renderer::UpdateRenderTexture() const
 				//Set color off
 				SDL_SetRenderDrawColor(m_Renderer, 10, 10, 10, 255);
 			}
-			SDL_RenderPoint(m_Renderer, col, row);
+			SDL_RenderDrawPoint(m_Renderer, col, row);
 		}
 	}
 
