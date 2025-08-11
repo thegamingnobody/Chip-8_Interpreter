@@ -15,7 +15,7 @@
 
 std::string OpenFileDialog();
 
-int main()
+int main(int argc, char* argv[])
 {
 	std::srand(time(NULL));
 	//Chip8::Interpreter interpreter{};

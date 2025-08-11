@@ -1,8 +1,8 @@
 #include "InputManager.h"
-#include <SDL3/SDL.h>
+#include <SDL2/SDL.h>
 #include <Logger.h>
-#include <SDL3/SDL_keyboard.h>
-#include <backends/imgui_impl_sdl3.h>
+#include <SDL2/SDL_keyboard.h>
+#include <backends/imgui_impl_sdl2.h>
 #include <iostream>
 #include <sstream>
 #include <iomanip>
@@ -13,7 +13,7 @@ void Chip8::InputManager::Init()
 	m_KeysStateCurrent.resize(16);
 	m_KeyPressedThisFrame = false;
 
-	m_Keymap = { SDLK_X, SDLK_1, SDLK_2, SDLK_3, SDLK_Q, SDLK_W, SDLK_E, SDLK_A, SDLK_S, SDLK_D, SDLK_Z, SDLK_C, SDLK_4, SDLK_R, SDLK_F, SDLK_V };
+	m_Keymap = { SDLK_x, SDLK_1, SDLK_2, SDLK_3, SDLK_q, SDLK_w, SDLK_e, SDLK_a, SDLK_s, SDLK_d, SDLK_z, SDLK_c, SDLK_4, SDLK_r, SDLK_f, SDLK_v };
 }
 
 bool Chip8::InputManager::ProcessInput()
@@ -26,15 +26,15 @@ bool Chip8::InputManager::ProcessInput()
 	SDL_Event e;
 	while (SDL_PollEvent(&e)) 
 	{
-		if (e.type == SDL_EVENT_QUIT)
+		if (e.type == SDL_QUIT)
 		{
 			return false;
 		}
-		else if (e.type == SDL_EVENT_KEY_DOWN)
+		else if (e.type == SDL_KEYDOWN)
 		{
 			for (int i = 0; i < m_KeysStateCurrent.size(); i++)
 			{
-				if (e.key.key == m_Keymap[i])
+				if (e.key.keysym.scancode == m_Keymap[i])
 				{
 					m_KeyPressedThisFrame = true;
 					SetKey(i, true);
@@ -42,11 +42,11 @@ bool Chip8::InputManager::ProcessInput()
 				}
 			}
 		}
-		else if (e.type == SDL_EVENT_KEY_UP)
+		else if (e.type == SDL_KEYUP)
 		{
 			for (int i = 0; i < m_KeysStateCurrent.size(); i++)
 			{
-				if (e.key.key == m_Keymap[i])
+				if (e.key.keysym.scancode == m_Keymap[i])
 				{
 					m_KeyReleasedThisFrame = true;
 					SetKey(i, false);
@@ -54,7 +54,7 @@ bool Chip8::InputManager::ProcessInput()
 				}
 			}
 		}
-		ImGui_ImplSDL3_ProcessEvent(&e);
+		ImGui_ImplSDL2_ProcessEvent(&e);
 	}
 
 	return true;

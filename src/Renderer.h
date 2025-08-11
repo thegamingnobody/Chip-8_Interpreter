@@ -1,7 +1,7 @@
 #pragma once
 
 #include "Singleton.h"
-#include <SDL3/SDL.h>
+#include <SDL2/SDL.h>
 #include <vector>
 #include <imgui.h>
 #include "TypeDefinitions.h"
