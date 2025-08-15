@@ -1,6 +1,7 @@
 A Chip-8 interpreter written in c++, using SDL2 and ImGui.
 I started this project because I wanted to learn about emulator programming.
 
+Sound isn't implemented (yet?).
 
 
 Test roms used: 
